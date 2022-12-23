@@ -1,13 +1,11 @@
 package it.treacque.web;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.ToString;
 import lombok.extern.jackson.Jacksonized;
 
-@AllArgsConstructor
-@Jacksonized
 @Builder
+@Jacksonized
 @ToString
 public class FountainRequest {
     public final String name;
