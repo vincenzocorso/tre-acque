@@ -1,0 +1,62 @@
+version: "3.9"
+services:
+  rabbitmq:
+    image: rabbitmq:3.11-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - app-net
+    restart: unless-stopped
+
+  postgres:
+    image: postgis/postgis:15-3.3
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    networks:
+      - app-net
+    restart: unless-stopped
+
+  fountain-service:
+    depends_on:
+      - postgres
+      - rabbitmq
+    build:
+      context: ./fountain-service
+      dockerfile: ./Dockerfile
+    image: tre-acque/fountain-service
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      JDBC_URL: jdbc:postgresql://postgres:5432/app
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: admin
+      RABBITMQ_PASSWORD: password
+    ports:
+      - "8080:8080"
+    networks:
+      - app-net
+    restart: unless-stopped
+
+#  consumer-test:
+#    depends_on:
+#      - postgres
+#      - rabbitmq
+#    build:
+#      context: ./consumer-test
+#      dockerfile: ./Dockerfile
+#    image: tre-acque/consumer-test
+#    networks:
+#      - app-net
+#    restart: unless-stopped
+
+networks:
+  app-net:
