@@ -5,6 +5,7 @@ import it.treacque.exceptions.FountainNotFoundException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+import java.util.List;
 
 @Provider
 public class FountainNotFoundHandler implements ExceptionMapper<FountainNotFoundException> {
@@ -13,6 +14,7 @@ public class FountainNotFoundHandler implements ExceptionMapper<FountainNotFound
         ErrorResponse responseBody = ErrorResponse.builder()
                 .type("FOUNTAIN_NOT_FOUND")
                 .message("The fountain with the given id was not found")
+                .issues(List.of())
                 .build();
         return Response.status(Response.Status.NOT_FOUND).entity(responseBody).build();
     }
