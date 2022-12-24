@@ -1,6 +1,6 @@
 package it.treacque.web;
 
-import it.treacque.exceptions.FountainNotFoundException;
+import it.treacque.exceptions.EntityNotFoundException;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -8,12 +8,12 @@ import javax.ws.rs.ext.Provider;
 import java.util.List;
 
 @Provider
-public class FountainNotFoundHandler implements ExceptionMapper<FountainNotFoundException> {
+public class EntityNotFoundHandler implements ExceptionMapper<EntityNotFoundException> {
     @Override
-    public Response toResponse(FountainNotFoundException exception) {
+    public Response toResponse(EntityNotFoundException exception) {
         ErrorResponse responseBody = ErrorResponse.builder()
-                .type("FOUNTAIN_NOT_FOUND")
-                .message("The fountain with the given id was not found")
+                .type("NOT_FOUND_ERROR")
+                .message("The entity with the given id (" + exception.getEntityId() + ") was not found")
                 .issues(List.of())
                 .build();
         return Response.status(Response.Status.NOT_FOUND).entity(responseBody).build();

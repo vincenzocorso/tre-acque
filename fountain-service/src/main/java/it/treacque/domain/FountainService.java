@@ -1,6 +1,6 @@
 package it.treacque.domain;
 
-import it.treacque.exceptions.FountainNotFoundException;
+import it.treacque.exceptions.EntityNotFoundException;
 import it.treacque.messaging.EventProducer;
 import it.treacque.web.FountainRequest;
 import lombok.AllArgsConstructor;
@@ -29,7 +29,7 @@ public class FountainService {
 
     public Fountain getFountain(Long fountainId) {
         return Fountain.<Fountain>findByIdOptional(fountainId)
-                .orElseThrow(() -> new FountainNotFoundException(fountainId.toString()));
+                .orElseThrow(() -> new EntityNotFoundException(fountainId.toString()));
     }
 
     @Transactional
@@ -55,7 +55,7 @@ public class FountainService {
     public void deleteFountain(Long fountainId) {
         // Delete the fountain
         var fountain = Fountain.<Fountain>findByIdOptional(fountainId)
-                .orElseThrow(() -> new FountainNotFoundException(fountainId.toString()));
+                .orElseThrow(() -> new EntityNotFoundException(fountainId.toString()));
         fountain.delete();
 
         // Publish the event

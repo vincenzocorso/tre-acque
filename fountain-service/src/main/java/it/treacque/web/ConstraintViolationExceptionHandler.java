@@ -16,7 +16,7 @@ public class ConstraintViolationExceptionHandler implements ExceptionMapper<Cons
                 .toList();
 
         ErrorResponse responseBody = ErrorResponse.builder()
-                .type("VALIDATION_EXCEPTION")
+                .type("VALIDATION_ERROR")
                 .message("There was an error during the validation of the request")
                 .issues(issues)
                 .build();

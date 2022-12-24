@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 public class FountainRequest {
     @NotEmpty(message = "The name of the fountain must not be empty")
     public final String name;
-    @NotNull(message = "The latitude of the fountain must not be null")
+    @NotNull(message = "The latitude of the fountain must be present")
     public final Double latitude;
-    @NotNull(message = "The longitude of the fountain must not be null")
+    @NotNull(message = "The longitude of the fountain must be present")
     public final Double longitude;
 }
