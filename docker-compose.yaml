@@ -85,6 +85,13 @@ services:
       - MAILGUN_API_KEY=YOUR_API_KEY
     ports:
       - "8081:3000"
+
+  arangodb:
+    image: arangodb:3.10
+    environment:
+      ARANGO_NO_AUTH: 1
+    ports:
+      - "8529:8529"
     networks:
       - app-net
     restart: unless-stopped
