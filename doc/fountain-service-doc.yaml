@@ -18,7 +18,7 @@ paths:
       description: Gets all the fountains
       parameters:
       - name: area
-        description: The search area
+        description: The optinal search area
         in: query
         required: false
         schema:
@@ -47,53 +47,13 @@ paths:
             value:
               latitude: 543.13
               longitude: 654.123
-      - name: latitude
-        description: The centre latitude
-        in: query
-        required: false
-        schema:
-          type: number
-          format: double
-        example: 132.541231
-      - name: longitude
-        description: The centre longitude
-        in: query
-        required: false
-        schema:
-          type: number
-          format: double
-        example: 412.123141
-      - name: radius
-        description: The search radius (in meters)
-        in: query
-        required: false
-        schema:
-          type: number
-          format: double
-          default: 500.0
       responses:
         200:
           description: The list of fountains was successfully retrieved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  name:
-                    type: string
-                  latitude:
-                    type: number
-                    format: double
-                  longitude:
-                    type: number
-                    format: double
-                example:
-                  id: 1
-                  name: Fontana Via Armando Diaz
-                  latitude: 345.91341
-                  longitude: 315.9123
+                $ref: "#/components/schemas/FountainResponse"
     post:
       description: Add a new fountain
       requestBody:
@@ -105,8 +65,8 @@ paths:
               type: object
               required:
               - name
-                latitude
-                longitude
+              - latitude
+              - longitude
               properties:
                 name:
                   type: string
@@ -126,38 +86,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  name:
-                    type: string
-                  latitude:
-                    type: number
-                    format: double
-                  longitude:
-                    type: number
-                    format: double
-                example:
-                  id: 1
-                  name: Fontana Via Armando Diaz
-                  latitude: 345.91341
-                  longitude: 315.9123
+                $ref: "#/components/schemas/FountainResponse"
         400:
           description: The request is not valid
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  type:
-                    type: string
-                  message:
-                    type: string
-                  issues:
-                    type: array
-                    items:
-                      type: string
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "VALIDATION_ERROR"
+                message: "There was an error during the validation of the request"
+                issues:
+                - "The latitude of the fountain must be present"
+                - "The longitude of the fountain must be present"
   /fountains/{fountainId}:
     parameters:
     - name: fountainId
@@ -175,47 +116,66 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  name:
-                    type: string
-                  latitude:
-                    type: number
-                    format: double
-                  longitude:
-                    type: number
-                    format: double
-                example:
-                  id: 1
-                  name: Fontana Via Armando Diaz
-                  latitude: 345.91341
-                  longitude: 315.9123
+                $ref: "#/components/schemas/FountainResponse"
         404:
           description: The fountain with the given id was not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  type:
-                    type: string
-                  message:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "NOT_FOUND_ERROR"
+                message: "The entity with the given id (1) was not found"
+                issues: []
     delete:
       description: Delete the fountain with the given id
       responses:
         200:
-          description: Delete the fountain with the given id
+          description: The fountain with the given id was succefully deleted
         404:
           description: The fountain with the given id was not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  type:
-                    type: string
-                  message:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "NOT_FOUND_ERROR"
+                message: "The entity with the given id (1) was not found"
+                issues: []
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      description: The payload returned when one or more errors occur
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+        issues:
+          type: array
+          items:
+            type: string
+      example:
+        type: VALIDATION_ERROR
+        message: There was an error during the validation of the request
+        issues:
+        - The query parameters longitude and latitude must be both present or both absent
+    FountainResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+      example:
+        id: 1
+        name: Fontana Via Armando Diaz
+        latitude: 345.91341
+        longitude: 315.9123
