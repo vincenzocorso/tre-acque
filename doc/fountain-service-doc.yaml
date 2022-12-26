@@ -12,41 +12,42 @@ info:
   version: "1"
 servers:
   - url: http://localhost:8080
+  - url: http://localhost:8081
 paths:
   /fountains:
     get:
       description: Gets all the fountains
       parameters:
-      - name: area
-        description: The optinal search area
-        in: query
-        required: false
-        schema:
-          type: object
-          required:
-          - latitude
-          - longitude
-          properties:
-            latitude:
-              type: number
-              format: double
-            longitude:
-              type: number
-              format: double
-            radius:
-              type: number
-              format: double
-              default: 500.0
-        examples:
-          with radius:
-            value:
-              latitude: 543.13
-              longitude: 654.123
-              radius: 340.50
-          without radius:
-            value:
-              latitude: 543.13
-              longitude: 654.123
+        - name: area
+          description: The optinal search area
+          in: query
+          required: false
+          schema:
+            type: object
+            required:
+              - latitude
+              - longitude
+            properties:
+              latitude:
+                type: number
+                format: double
+              longitude:
+                type: number
+                format: double
+              radius:
+                type: number
+                format: double
+                default: 500.0
+          examples:
+            with radius:
+              value:
+                latitude: 543.13
+                longitude: 654.123
+                radius: 340.50
+            without radius:
+              value:
+                latitude: 543.13
+                longitude: 654.123
       responses:
         200:
           description: The list of fountains was successfully retrieved
@@ -64,9 +65,9 @@ paths:
             schema:
               type: object
               required:
-              - name
-              - latitude
-              - longitude
+                - name
+                - latitude
+                - longitude
               properties:
                 name:
                   type: string
@@ -97,17 +98,17 @@ paths:
                 type: "VALIDATION_ERROR"
                 message: "There was an error during the validation of the request"
                 issues:
-                - "The latitude of the fountain must be present"
-                - "The longitude of the fountain must be present"
+                  - "The latitude of the fountain must be present"
+                  - "The longitude of the fountain must be present"
   /fountains/{fountainId}:
     parameters:
-    - name: fountainId
-      description: the fountain id
-      in: path
-      required: true
-      schema:
-        type: string
-      example: 1
+      - name: fountainId
+        description: the fountain id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: 1
     get:
       description: Get the fountain with the given id
       responses:
@@ -142,6 +143,92 @@ paths:
                 type: "NOT_FOUND_ERROR"
                 message: "The entity with the given id (1) was not found"
                 issues: []
+  /subscribe:
+    post:
+      description: Subscribe to receive notifications of fontanelle
+      requestBody:
+        description: Subscription details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - event
+              properties:
+                email:
+                  type: string
+                event:
+                  type: string
+              example:
+                email: example@test.com
+                event: fountain_added_events
+      responses:
+        200:
+          description: Subscription created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+        201:
+          description: Subscription already exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+        400:
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "VALIDATION_ERROR"
+                message: "There was an error during the validation of the request"
+  /unsubscribe:
+    post:
+      description: Unsubscribe from receive notifications of fontanelle
+      requestBody:
+        description: Unsubscription details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - event
+              properties:
+                email:
+                  type: string
+                event:
+                  type: string
+              example:
+                email: example@test.com
+                event: fountain_added_events
+      responses:
+        200:
+          description: Subscription deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnsubscriptionResponse"
+        400:
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "VALIDATION_ERROR"
+                message: "There was an error during the validation of the request"
+        404:
+          description: Subscription doesn't found
+          content:
+            application/json:
+              example:
+                message: "subscription doesn't found"
 components:
   schemas:
     ErrorResponse:
@@ -160,7 +247,7 @@ components:
         type: VALIDATION_ERROR
         message: There was an error during the validation of the request
         issues:
-        - The query parameters longitude and latitude must be both present or both absent
+          - The query parameters longitude and latitude must be both present or both absent
     FountainResponse:
       type: object
       properties:
@@ -179,3 +266,17 @@ components:
         name: Fontana Via Armando Diaz
         latitude: 345.91341
         longitude: 315.9123
+    SubscriptionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: subscription created | subscription already exist
+    UnsubscriptionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: subscription deleted

@@ -34,3 +34,7 @@ nb-configuration.xml
 
 # Local environment
 .env
+mailgun.env
+
+# Node.js
+node_modules/

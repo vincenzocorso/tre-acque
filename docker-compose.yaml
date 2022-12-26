@@ -24,6 +24,14 @@ services:
       - app-net
     restart: unless-stopped
 
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-net
+    restart: unless-stopped
+
   fountain-service:
     depends_on:
       - postgres
@@ -42,6 +50,29 @@ services:
       RABBITMQ_PASSWORD: password
     ports:
       - "8080:8080"
+    networks:
+      - app-net
+    restart: unless-stopped
+
+  notification-service:
+    depends_on:
+      - rabbitmq
+      - redis
+    build:
+      context: ./notification-service
+      dockerfile: ./Dockerfile
+    image: tre-acque/notification-service
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=admin
+      - RABBITMQ_PASSWORD=password
+      - REDIS_PORT=6379
+      - REDIS_HOST=redis
+      - MAILGUN_FROM=treacque@mailinator.com
+      - MAILGUN_DOMAIN=sandbox7d41571d706b41b3bee12f9fc7684f64.mailgun.org
+      - MAILGUN_API_KEY=YOUR_API_KEY
+    ports:
+      - "8081:3000"
     networks:
       - app-net
     restart: unless-stopped

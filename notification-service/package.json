@@ -1,0 +1,27 @@
+{
+  "name": "notification-service",
+  "version": "1.0.0",
+  "description": "= Tra Acque",
+  "main": "receive.js",
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-validator": "^6.14.2",
+    "mailgun-js": "^0.22.0",
+    "redis": "^4.5.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/tre-acque/tre-acque.git"
+  },
+  "author": "Gabriele Chiodi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/tre-acque/tre-acque/issues"
+  },
+  "homepage": "https://gitlab.com/tre-acque/tre-acque#readme"
+}
