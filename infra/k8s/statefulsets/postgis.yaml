@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgis
+  labels:
+    app.kubernetes.io/name: postgis
+    app.kubernetes.io/instance: postgis-1
+    app.kubernetes.io/version: "15-3.3"
+    app.kubernetes.io/component: fountain-service-db
+    app.kubernetes.io/part-of: fountain-service
+    app.kubernetes.io/managed-by: Kubernetes
+spec:
+  serviceName: postgis
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgis
+      app.kubernetes.io/instance: postgis-1
+  replicas: 1 # The official image does not support replication
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgis
+        app.kubernetes.io/instance: postgis-1
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: postgis
+          image: postgis/postgis:15-3.3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              value: admin
+            - name: POSTGRES_PASSWORD
+              value: password
+            - name: POSTGRES_DB
+              value: app
+          volumeMounts:
+            - name: postgis-volume
+              mountPath: /var/lib/postgresql/data
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 1Gi
+          livenessProbe:
+            exec:
+              command:
+                - psql
+                - --no-password
+                - --username
+                - admin
+                - --dbname
+                - app
+                - --command
+                - SELECT 1
+            initialDelaySeconds: 45
+            timeoutSeconds: 2
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - --username
+                - admin
+                - --dbname
+                - app
+                - --quiet
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+      volumes:
+        - name: postgis-volume
+          persistentVolumeClaim:
+            claimName: postgis
