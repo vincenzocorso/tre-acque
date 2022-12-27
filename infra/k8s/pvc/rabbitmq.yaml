@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbitmq
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/instance: rabbitmq-1
+    app.kubernetes.io/version: "3.11-alpine"
+    app.kubernetes.io/component: message-broker
+    app.kubernetes.io/part-of: tre-acque
+    app.kubernetes.io/managed-by: Kubernetes
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 1Gi
