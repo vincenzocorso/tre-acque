@@ -27,11 +27,11 @@ import javax.inject.Inject;
 @ApplicationScoped
 public class EventProducer {
     @Inject
-    @Channel("fountain-added-events")
+    @Channel("fountain_added_events")
     Emitter<FountainAddedEvent> fountainAddedEmitter;
 
     @Inject
-    @Channel("fountain-deleted-events")
+    @Channel("fountain_deleted_events")
     Emitter<FountainDeletedEvent> fountainDeletedEmitter;
 
     public void sendEvent(FountainAddedEvent event) {
