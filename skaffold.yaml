@@ -1,0 +1,19 @@
+apiVersion: skaffold/v4beta1
+kind: Config
+metadata:
+  name: tre-acque
+build:
+  artifacts:
+    - image: tre-acque/fountain-service
+      context: ./fountain-service
+      docker:
+        dockerfile: Dockerfile
+  local:
+    push: false
+    concurrency: 0 # no-limit
+manifests:
+  rawYaml:
+    - ./k8s/**/*.yaml
+deploy:
+  tolerateFailuresUntilDeadline: true
+  kubectl: {}
