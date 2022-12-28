@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fountain-service
+  labels:
+    app.kubernetes.io/name: fountain-service
+    app.kubernetes.io/instance: fountain-service-1
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/component: fountain-service
+    app.kubernetes.io/part-of: tre-acque
+    app.kubernetes.io/managed-by: Kubernetes
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fountain-service
+      app.kubernetes.io/instance: fountain-service-1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fountain-service
+        app.kubernetes.io/instance: fountain-service-1
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: fountain-service
+          image: tre-acque/fountain-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              value: admin
+            - name: POSTGRES_PASSWORD
+              value: password
+            - name: JDBC_URL
+              value: jdbc:postgresql://postgis:5432/app
+            - name: RABBITMQ_HOST
+              value: rabbitmq
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: admin
+            - name: RABBITMQ_PASSWORD
+              value: password
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 200Mi
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /q/health/live
+            initialDelaySeconds: 15
+            timeoutSeconds: 20
+            periodSeconds: 20
+            failureThreshold: 6
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /q/health/ready
+            initialDelaySeconds: 10
+            timeoutSeconds: 20
+            periodSeconds: 30
+            failureThreshold: 3
+            successThreshold: 1
+# TODO: add rolling updates strategy

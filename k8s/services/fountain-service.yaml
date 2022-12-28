@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fountain-service
+  labels:
+    app.kubernetes.io/name: fountain-service
+    app.kubernetes.io/instance: fountain-service-1
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/component: fountain-service
+    app.kubernetes.io/part-of: tre-acque
+    app.kubernetes.io/managed-by: Kubernetes
+spec:
+  selector:
+    app.kubernetes.io/name: fountain-service
+    app.kubernetes.io/instance: fountain-service-1
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP
