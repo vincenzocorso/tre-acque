@@ -13,9 +13,16 @@ info:
 servers:
   - url: http://localhost:8080
   - url: http://localhost:8081
+tags:
+  - name: fountain-service
+    description: description of fountain service...
+  - name: notification-service
+    description: description of notification service...
 paths:
   /fountains:
     get:
+      tags:
+        - fountain-service
       description: Gets all the fountains
       parameters:
         - name: area
@@ -56,6 +63,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/FountainResponse"
     post:
+      tags:
+        - fountain-service
       description: Add a new fountain
       requestBody:
         description: The fountain details
@@ -110,6 +119,8 @@ paths:
           type: string
         example: 1
     get:
+      tags:
+        - fountain-service
       description: Get the fountain with the given id
       responses:
         200:
@@ -129,6 +140,8 @@ paths:
                 message: "The entity with the given id (1) was not found"
                 issues: []
     delete:
+      tags:
+        - fountain-service
       description: Delete the fountain with the given id
       responses:
         200:
@@ -145,6 +158,8 @@ paths:
                 issues: []
   /subscribe:
     post:
+      tags:
+        - notification-service
       description: Subscribe to receive notifications of fontanelle
       requestBody:
         description: Subscription details
@@ -163,31 +178,45 @@ paths:
                   type: string
               example:
                 email: example@test.com
-                event: fountain_added_events
+                event: fountain_added_events|fountain_deleted_events
       responses:
         200:
           description: Subscription created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SubscriptionResponse"
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: subscription created
         201:
           description: Subscription already exist
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SubscriptionResponse"
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: subscription already exist
         400:
           description: The request is not valid
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                type: "VALIDATION_ERROR"
-                message: "There was an error during the validation of the request"
+                type: object
+                properties:
+                  errors:
+                    type: string
+                example:
+                  errors: email required
   /unsubscribe:
     post:
+      tags:
+        - notification-service
       description: Unsubscribe from receive notifications of fontanelle
       requestBody:
         description: Unsubscription details
@@ -206,29 +235,41 @@ paths:
                   type: string
               example:
                 email: example@test.com
-                event: fountain_added_events
+                event: fountain_added_events|fountain_deleted_events
       responses:
         200:
           description: Subscription deleted
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UnsubscriptionResponse"
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: subscription deleted
         400:
           description: The request is not valid
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                type: "VALIDATION_ERROR"
-                message: "There was an error during the validation of the request"
+                type: object
+                properties:
+                  errors:
+                    type: string
+                example:
+                  errors: email required
         404:
           description: Subscription doesn't found
           content:
             application/json:
-              example:
-                message: "subscription doesn't found"
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: subscription doesn't found
 components:
   schemas:
     ErrorResponse:
@@ -266,17 +307,3 @@ components:
         name: Fontana Via Armando Diaz
         latitude: 345.91341
         longitude: 315.9123
-    SubscriptionResponse:
-      type: object
-      properties:
-        message:
-          type: string
-      example:
-        message: subscription created | subscription already exist
-    UnsubscriptionResponse:
-      type: object
-      properties:
-        message:
-          type: string
-      example:
-        message: subscription deleted
