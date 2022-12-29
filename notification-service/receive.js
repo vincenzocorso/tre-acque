@@ -116,9 +116,20 @@ redisClient.connect().then(() => {
             throw error1;
           }
 
-          channel.assertQueue(queue, {
-            durable: true,
-          });
+          channel.assertExchange(queue, "topic", { durable: true });
+
+          channel.assertQueue(
+            queue,
+            {
+              durable: true,
+            },
+            (error1, q) => {
+              if (error1) {
+                throw error1;
+              }
+              channel.bindQueue(q.queue, queue, "");
+            }
+          );
 
           console.log(
             " [*] Waiting for messages in %s. To exit press CTRL+C",
