@@ -14,9 +14,15 @@ const mg = mailgun({
 
 var amqp = require("amqplib/callback_api");
 
+const health = require("@cloudnative/health-connect");
+let healthcheck = new health.HealthChecker();
+
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+app.use("/live", health.LivenessEndpoint(healthcheck));
+app.use("/ready", health.ReadinessEndpoint(healthcheck));
 
 const port = 3000;
 

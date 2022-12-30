@@ -4,6 +4,7 @@
   "description": "= Tra Acque",
   "main": "receive.js",
   "dependencies": {
+    "@cloudnative/health-connect": "^2.1.0",
     "amqplib": "^0.10.3",
     "cors": "^2.8.5",
     "express": "^4.18.2",
