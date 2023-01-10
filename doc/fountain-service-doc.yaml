@@ -160,7 +160,7 @@ paths:
     post:
       tags:
         - notification-service
-      description: Subscribe to receive notifications of fontanelle
+      description: Subscribe to a queue of events
       requestBody:
         description: Subscription details
         required: true
@@ -178,7 +178,7 @@ paths:
                   type: string
               example:
                 email: example@test.com
-                event: fountain_added_events|fountain_deleted_events
+                event: fountain_added_events
       responses:
         200:
           description: Subscription created
@@ -209,10 +209,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  errors:
-                    type: string
+                  error:
+                    type: object
+                    properties:
+                      value:
+                        type: string
+                      msg:
+                        type: string
+                      param:
+                        type: string
+                      location:
+                        type: string
+
                 example:
-                  errors: email required
+                  error:
+                    value: email
+                    msg: invalid value
+                    param: email
+                    location: body
   /unsubscribe:
     post:
       tags:
@@ -235,7 +249,7 @@ paths:
                   type: string
               example:
                 email: example@test.com
-                event: fountain_added_events|fountain_deleted_events
+                event: fountain_added_events
       responses:
         200:
           description: Subscription deleted
@@ -255,10 +269,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  errors:
-                    type: string
+                  error:
+                    type: object
+                    properties:
+                      value:
+                        type: string
+                      msg:
+                        type: string
+                      param:
+                        type: string
+                      location:
+                        type: string
+
                 example:
-                  errors: email required
+                  error:
+                    value: email
+                    msg: invalid value
+                    param: email
+                    location: body
         404:
           description: Subscription doesn't found
           content:

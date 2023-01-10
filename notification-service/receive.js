@@ -26,7 +26,6 @@ app.use("/ready", health.ReadinessEndpoint(healthcheck));
 
 const port = 3000;
 
-// events of rabbitmq
 const EVENTS = ["fountain_added_events", "fountain_deleted_events"];
 
 const redisClient = redis.createClient({
@@ -55,7 +54,7 @@ redisClient.connect().then(() => {
       if (!errors.isEmpty()) {
         return res
           .status(400)
-          .json({ errors: errors.array({ onlyFirstError: true }) });
+          .json({ error: errors.array({ onlyFirstError: true })[0] });
       }
 
       const key = req.body.event;
@@ -85,7 +84,7 @@ redisClient.connect().then(() => {
       if (!errors.isEmpty()) {
         return res
           .status(400)
-          .json({ errors: errors.array({ onlyFirstError: true }) });
+          .json({ error: errors.array({ onlyFirstError: true })[0] });
       }
 
       const key = req.body.event;
