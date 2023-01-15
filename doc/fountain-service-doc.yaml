@@ -1,7 +1,8 @@
 openapi: 3.0.3
+
 info:
   title: Tre Acque
-  description: To insert
+  description: TODO To insert
   contact:
     name: Tre Acque
     url: https://gitlab.com/tre-acque
@@ -10,14 +11,19 @@ info:
     name: AGPL
     url: https://gitlab.com/tre-acque/tre-acque/LICENSE.md
   version: "1"
+
 servers:
   - url: http://localhost:8080
   - url: http://localhost:8081
+
 tags:
   - name: fountain-service
-    description: description of fountain service...
+    description: TODO description of fountain service...
   - name: notification-service
-    description: description of notification service...
+    description: TODO description of notification service...
+  - name: rating-service
+    description: TODO description of notification servite...
+
 paths:
   /fountains:
     get:
@@ -109,6 +115,7 @@ paths:
                 issues:
                   - "The latitude of the fountain must be present"
                   - "The longitude of the fountain must be present"
+
   /fountains/{fountainId}:
     parameters:
       - name: fountainId
@@ -156,6 +163,7 @@ paths:
                 type: "NOT_FOUND_ERROR"
                 message: "The entity with the given id (1) was not found"
                 issues: []
+
   /subscribe:
     post:
       tags:
@@ -227,6 +235,7 @@ paths:
                     msg: invalid value
                     param: email
                     location: body
+
   /unsubscribe:
     post:
       tags:
@@ -298,6 +307,122 @@ paths:
                     type: string
                 example:
                   message: subscription doesn't found
+
+  /fountains/{fountainId}/rating:
+    parameters:
+      - name: fountainId
+        description: Fountain ID.
+        in: path
+        required: true
+        schema:
+          type: string
+        example: 1
+    get:
+      tags:
+        - rating-service
+      description: Get average rating for given fountain.
+      responses:
+        200:
+          description: The fountain's rating was successfully retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rating"
+        404:
+          description: The fountain with the given id was not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "NOT_FOUND_ERROR"
+                message: "The entity with the given id (1) was not found"
+                issues: []
+    post:
+      tags:
+        - rating-service
+      description: Add rating for given fountain.
+      requestBody:
+        description: The rating details.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Rating"
+      responses:
+        201:
+          description: The rating was successfully added.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RatingResponse"
+        400:
+          description: The request is not valid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "VALIDATION_ERROR"
+                message: "There was an error during the validation of the request"
+                issues:
+                  - "The rating of the fountain must be present"
+                  - "The rating of the fountain must between 0 and 5"
+
+  /fountains/{fountainId}/rating/{ratingId}:
+    parameters:
+      - name: fountainId
+        description: Fountain ID.
+        in: path
+        required: true
+        schema:
+          type: string
+        example: 1
+      - name: ratingId
+        description: Rating ID.
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/Rating"
+    get:
+      tags:
+        - rating-service
+      description: Get the given rating for given fountain.
+      responses:
+        200:
+          description: The given rating was successfully retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RatingResponse"
+        404:
+          description: The rating with the given id was not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "NOT_FOUND_ERROR"
+                message: "The entity with the given id (4) was not found"
+                issues: []
+    delete:
+      tags:
+        - rating-service
+      description: Delete the rating with the given id.
+      responses:
+        200:
+          description: The rating with the given id was succefully deleted.
+        404:
+          description: The rating with the given id was not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "NOT_FOUND_ERROR"
+                message: "The entity with the given id (4) was not found"
+                issues: []
+
 components:
   schemas:
     ErrorResponse:
@@ -317,6 +442,7 @@ components:
         message: There was an error during the validation of the request
         issues:
           - The query parameters longitude and latitude must be both present or both absent
+
     FountainResponse:
       type: object
       properties:
@@ -335,3 +461,24 @@ components:
         name: Fontana Via Armando Diaz
         latitude: 345.91341
         longitude: 315.9123
+
+    Rating:
+      type: integer
+      description: The data type used to rate a fountain.
+      format: int32
+      maximum: 5
+      minimum: 0
+      example: 4
+
+    RatingResponse:
+      type: object
+      description: The payload returned when a rating is added for a given fountain.
+      properties:
+        id:
+          type: string
+          description: Rating's unique ID.
+        value:
+          $ref: '#/components/schemas/Rating'
+      example:
+        id: 1
+        value: 4
