@@ -185,48 +185,28 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                example:
-                  message: subscription created
+                $ref: "#/components/schemas/NotificationResponse"
+              example:
+                message: subscription created
         201:
           description: Subscription already exist
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                example:
-                  message: subscription already exist
+                $ref: "#/components/schemas/NotificationResponse"
+              example:
+                message: subscription already exist
         400:
           description: The request is not valid
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: object
-                    properties:
-                      value:
-                        type: string
-                      msg:
-                        type: string
-                      param:
-                        type: string
-                      location:
-                        type: string
-
-                example:
-                  error:
-                    value: email
-                    msg: invalid value
-                    param: email
-                    location: body
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "VALIDATION_ERROR"
+                message: "There was an error during the validation of the request"
+                issues:
+                  - "Param: email, error: Invalid value"
   /unsubscribe:
     post:
       tags:
@@ -256,48 +236,30 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                example:
-                  message: subscription deleted
+                $ref: "#/components/schemas/NotificationResponse"
+              example:
+                message: subscription deleted
         400:
           description: The request is not valid
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: object
-                    properties:
-                      value:
-                        type: string
-                      msg:
-                        type: string
-                      param:
-                        type: string
-                      location:
-                        type: string
-
-                example:
-                  error:
-                    value: email
-                    msg: invalid value
-                    param: email
-                    location: body
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "VALIDATION_ERROR"
+                message: "There was an error during the validation of the request"
+                issues:
+                  - "Param: email, error: Invalid value"
         404:
           description: Subscription doesn't found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                example:
-                  message: subscription doesn't found
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "NOT_FOUND_ERROR"
+                message: "Subscription doesn't found"
+                issues: []
 components:
   schemas:
     ErrorResponse:
@@ -335,3 +297,10 @@ components:
         name: Fontana Via Armando Diaz
         latitude: 345.91341
         longitude: 315.9123
+    NotificationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: Subscription created

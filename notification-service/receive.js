@@ -39,6 +39,14 @@ redisClient.connect().then(() => {
     throw new Error(message);
   });
 
+  const getIssuesFromErrors = (errors) => {
+    const issues = [];
+    errors.forEach((error) => {
+      issues.push("Param: " + error.param + ", error: " + error.msg);
+    });
+    return issues;
+  };
+
   app.post(
     "/subscribe",
     check("email").exists().isEmail(),
@@ -52,9 +60,11 @@ redisClient.connect().then(() => {
       const errors = validationResult(req);
 
       if (!errors.isEmpty()) {
-        return res
-          .status(400)
-          .json({ error: errors.array({ onlyFirstError: true })[0] });
+        return res.status(400).json({
+          type: "VALIDATION_ERROR",
+          message: "There was an error during the validation of the request",
+          issues: getIssuesFromErrors(errors.array()),
+        });
       }
 
       const key = req.body.event;
@@ -82,9 +92,11 @@ redisClient.connect().then(() => {
       const errors = validationResult(req);
 
       if (!errors.isEmpty()) {
-        return res
-          .status(400)
-          .json({ error: errors.array({ onlyFirstError: true })[0] });
+        return res.status(400).json({
+          type: "VALIDATION_ERROR",
+          message: "There was an error during the validation of the request",
+          issues: getIssuesFromErrors(errors.array()),
+        });
       }
 
       const key = req.body.event;
@@ -92,7 +104,13 @@ redisClient.connect().then(() => {
       if (result > 0) {
         return res.status(200).json({ message: "subscription deleted" });
       } else {
-        return res.status(404).json({ message: "subscription doesn't found" });
+        return res
+          .status(404)
+          .json({
+            type: "NOT_FOUND_ERROR",
+            message: "subscription doesn't found",
+            issues: [],
+          });
       }
     }
   );
