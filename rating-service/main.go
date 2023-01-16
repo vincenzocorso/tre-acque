@@ -15,7 +15,9 @@ import (
 
 type Application struct {
 	ArangoClient arangodb.Client
+	ArangoCollection arangodb.Collection
 }
+
 
 func main() {
 	// ArangoDB
@@ -31,8 +33,30 @@ func main() {
 		log.Fatal(err)
 	}
 
+	dbConn, err := arangoClient.Database(context.Background(), "ratingsdb")
+	if err != nil && IsNotFoundGeneral(err) {
+		dbConn, err = arangoClient.CreateDatabase(context.Background(), "ratingsdb", nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if err != nil {
+		log.Fatal(err)
+	}
+
+	colConn, err := dbConn.CollectionExists(context.Background(), "ratings")
+	if err != nil && IsNotFoundGeneral(err) {
+		colConn, err = dbConn.CreateCollection(context.Background(), "ratings", nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if err != nil {
+		log.Fatal(err)
+	}
+
+
 	app := &Application{
 		ArangoClient: arangoClient,
+		ArangoCollection: colConn,
 	}
 
 	// Webserver.
