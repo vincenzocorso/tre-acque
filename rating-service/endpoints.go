@@ -1,10 +1,16 @@
 package main
 
 import (
-	"net/http"
 	ctx "context"
+	"io"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
 
+	"github.com/gorilla/mux"
 )
+
 func validRating(rating int) bool {
 	return rating >= 0 && rating <= 5
 }
@@ -44,20 +50,28 @@ func (app *Application) RatingPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	colName := strings.Join([]string{"fountain", fountainId}, "")
-	if found, err := app.ArangoClient.CollectionExists(ctx.Background(), colName); err != nil {
-		log.Println("rating should be between 0 and 5")
+	type Rate struct {
+		Rate int `json:"rate"`
+	}
+
+	type Update struct {
+		Ratings map[string]Rate `json:"ratings"`
+	}
+
+	update := Update{
+		Ratings: map[string]Rate{
+			"LL": Rate{Rate: 4}, // TODO KEY GEN
+		}}
+
+	if _, err := app.colConn.UpdateDocument(context.Background(), "fountainId", update); err != nil {
+		if arangodb.IsNotFoundGeneral(err) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
-	} else if !found {
-		log.Println("rating should be between 0 and 5")
-		w.WriteHeader(http.StatusNotFound)
+		return
 	}
-
-	col, err := app.ArangoClient.Collection(ctx.Background(), colName)
-	if err != nil {
-		// TODO
-	}
-
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(fountainId))
