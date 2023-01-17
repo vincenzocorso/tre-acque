@@ -2,12 +2,14 @@ package main
 
 import (
 	ctx "context"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
+	arangodb "github.com/arangodb/go-driver"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -15,12 +17,15 @@ func validRating(rating int) bool {
 	return rating >= 0 && rating <= 5
 }
 
+// It is called on GET /fountains/{fountainId}/rating/{ratingId}
 func (app *Application) RatingGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
+// It is called on DELETE /fountains/{fountainId}/rating/{ratingId}
 func (app *Application) RatingDeleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
+// It is called on POST /fountains/{fountainId}/rating
 func (app *Application) RatingPostHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the fountain ID from request's path.
 	fountainId, present := mux.Vars(r)["fountainId"]
@@ -50,6 +55,8 @@ func (app *Application) RatingPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Structs to generate the JSON patch, is something like this:
+	//	{"ratings": {"XX": {"rate": 3 }}}
 	type Rate struct {
 		Rate int `json:"rate"`
 	}
@@ -58,12 +65,21 @@ func (app *Application) RatingPostHandler(w http.ResponseWriter, r *http.Request
 		Ratings map[string]Rate `json:"ratings"`
 	}
 
+	// Generate unique ID for the single rating.
+	uuid, err := uuid.NewUUID()
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	update := Update{
 		Ratings: map[string]Rate{
-			"LL": Rate{Rate: 4}, // TODO KEY GEN
+			uuid.String(): Rate{Rate: rating},
 		}}
 
-	if _, err := app.colConn.UpdateDocument(context.Background(), "fountainId", update); err != nil {
+	// Save rating to the database.
+	if _, err := app.ArangoCollection.UpdateDocument(ctx.Background(), fountainId, update); err != nil {
 		if arangodb.IsNotFoundGeneral(err) {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -73,9 +89,24 @@ func (app *Application) RatingPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Generate JSON response and sent to the client.
+	type Response struct {
+		Id    string `json:"id"`
+		Value int    `json:"value"`
+	}
+
+	res := Response{Id: uuid.String(), Value: rating}
+	payload, err := json.Marshal(res)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(fountainId))
+	w.Write(payload)
 }
 
+// It is called on GET /fountains/{fountainId}/rating
 func (app *Application) FountainRatingGetHandler(w http.ResponseWriter, r *http.Request) {
 }
