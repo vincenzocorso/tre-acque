@@ -17,8 +17,10 @@
 
 package it.treacque.messaging;
 
+import io.smallrye.reactive.messaging.kafka.KafkaRecord;
 import it.treacque.domain.FountainAddedEvent;
 import it.treacque.domain.FountainDeletedEvent;
+import it.treacque.domain.FountainEvent;
 import org.eclipse.microprofile.reactive.messaging.*;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -26,19 +28,21 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class EventProducer {
-    @Inject
-    @Channel("fountain_added_events")
-    Emitter<FountainAddedEvent> fountainAddedEmitter;
+    public static final String FOUNTAIN_EVENTS = "fountain-events";
 
     @Inject
-    @Channel("fountain_deleted_events")
-    Emitter<FountainDeletedEvent> fountainDeletedEmitter;
+    @Channel(FOUNTAIN_EVENTS)
+    Emitter<FountainEvent> fountainEventsEmitter;
 
     public void sendEvent(FountainAddedEvent event) {
-        this.fountainAddedEmitter.send(Message.of(event));
+        var message = KafkaRecord.of(FOUNTAIN_EVENTS, event.id, event)
+                .withHeader("type", "FOUNTAIN_ADDED_EVENT");
+        this.fountainEventsEmitter.send(message);
     }
 
     public void sendEvent(FountainDeletedEvent event) {
-        this.fountainDeletedEmitter.send(Message.of(event));
+        var message = KafkaRecord.of(FOUNTAIN_EVENTS, event.id, event)
+                .withHeader("type", "FOUNTAIN_DELETED_EVENT");
+        this.fountainEventsEmitter.send(message);
     }
 }

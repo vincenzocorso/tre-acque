@@ -20,7 +20,7 @@ package it.treacque.domain;
 import lombok.Builder;
 
 @Builder
-public class FountainDeletedEvent {
+public class FountainDeletedEvent implements FountainEvent{
     public final String id;
     public final String name;
     public final double latitude;

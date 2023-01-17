@@ -17,7 +17,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-hibernate-orm-panache'
     implementation 'org.hibernate:hibernate-spatial:5.6.14.Final'
     implementation 'io.quarkus:quarkus-jdbc-postgresql'
-    implementation 'io.quarkus:quarkus-smallrye-reactive-messaging-rabbitmq'
+    implementation 'io.quarkus:quarkus-smallrye-reactive-messaging-kafka'
     implementation 'io.quarkus:quarkus-smallrye-health'
     implementation 'io.quarkus:quarkus-arc'
 }
