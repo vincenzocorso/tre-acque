@@ -3,6 +3,7 @@ package main
 import (
 	ctx "context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -17,8 +18,74 @@ func validRating(rating int) bool {
 	return rating >= 0 && rating <= 5
 }
 
+type RatingResponse struct {
+	Id    string `json:"id"`
+	Value int    `json:"value"`
+}
+
 // It is called on GET /fountains/{fountainId}/rating/{ratingId}
 func (app *Application) RatingGetHandler(w http.ResponseWriter, r *http.Request) {
+	// Get and parse the fountain ID from request's path.
+	fountainId, present := mux.Vars(r)["fountainId"]
+	if !present {
+		log.Println("fountain ID not present in request")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	fountainUUID, err := uuid.Parse(fountainId)
+	if err != nil {
+		log.Println("fountainId ID must be a valid identifier")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Get and parse the rating ID from request's path.
+	ratingId, present := mux.Vars(r)["ratingId"]
+	if !present {
+		log.Println("rating ID not present in request")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ratingUUID, err := uuid.Parse(ratingId)
+	if err != nil {
+		log.Println("ratingId ID must be a valid identifier")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Get the rating from the database.
+	// This query built with fmt is safe because we parsed the IDs.
+	query := fmt.Sprintf("FOR r IN ratings FILTER r._key == %q RETURN r.ratings.%s.rate",
+		fountainUUID.String(),
+		ratingUUID.String())
+	cursor, err := app.ArangoCollection.Database().Query(ctx.Background(), query, nil)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close()
+
+	// Extract rating from the cursor.
+	var rating int
+	_, err = cursor.ReadDocument(ctx.Background(), &rating)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Generate and send JSON response to the client.
+	res := RatingResponse{Id: ratingUUID.String(), Value: rating}
+	payload, err := json.Marshal(res)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(payload)
 }
 
 // It is called on DELETE /fountains/{fountainId}/rating/{ratingId}
@@ -90,12 +157,7 @@ func (app *Application) RatingPostHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// Generate JSON response and sent to the client.
-	type Response struct {
-		Id    string `json:"id"`
-		Value int    `json:"value"`
-	}
-
-	res := Response{Id: uuid.String(), Value: rating}
+	res := RatingResponse{Id: uuid.String(), Value: rating}
 	payload, err := json.Marshal(res)
 	if err != nil {
 		log.Print(err)
