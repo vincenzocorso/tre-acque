@@ -1,26 +1,26 @@
 package main
 
 import (
-	"context"
+	ctx "context"
 	"errors"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 
-	"github.com/gorilla/mux"
 	arangodb "github.com/arangodb/go-driver"
 	arangohttp "github.com/arangodb/go-driver/http"
+	"github.com/gorilla/mux"
 )
 
 type Application struct {
-	ArangoClient arangodb.Client
+	ArangoClient     arangodb.Client
 	ArangoCollection arangodb.Collection
 }
 
-
 func main() {
 	// ArangoDB
+	log.Println("Initializing database connection...")
 	arangoConn, err := arangohttp.NewConnection(arangohttp.ConnectionConfig{
 		Endpoints: []string{"http://localhost:8529"},
 	})
@@ -33,9 +33,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dbConn, err := arangoClient.Database(context.Background(), "ratingsdb")
-	if err != nil && IsNotFoundGeneral(err) {
-		dbConn, err = arangoClient.CreateDatabase(context.Background(), "ratingsdb", nil)
+	dbConn, err := arangoClient.Database(ctx.Background(), "ratingsdb")
+	if err != nil && arangodb.IsNotFoundGeneral(err) {
+		dbConn, err = arangoClient.CreateDatabase(ctx.Background(), "ratingsdb", nil)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -43,32 +43,32 @@ func main() {
 		log.Fatal(err)
 	}
 
-	colConn, err := dbConn.CollectionExists(context.Background(), "ratings")
-	if err != nil && IsNotFoundGeneral(err) {
-		colConn, err = dbConn.CreateCollection(context.Background(), "ratings", nil)
+	colConn, err := dbConn.Collection(ctx.Background(), "ratings")
+	if err != nil && arangodb.IsNotFoundGeneral(err) {
+		colConn, err = dbConn.CreateCollection(ctx.Background(), "ratings", nil)
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else if err != nil {
 		log.Fatal(err)
 	}
-
 
 	app := &Application{
-		ArangoClient: arangoClient,
+		ArangoClient:     arangoClient,
 		ArangoCollection: colConn,
 	}
 
 	// Webserver.
+	log.Println("Initializing webserver...")
 	router := mux.NewRouter()
 
-	router.HandleFunc("/fountains/{fountainId}/rating/{ratingId}", app.ratingGetHandler).
+	router.HandleFunc("/fountains/{fountainId}/rating/{ratingId}", app.RatingGetHandler).
 		Methods("GET")
-	router.HandleFunc("/fountains/{fountainId}/rating/{ratingId}", app.ratingDeleteHandler).
+	router.HandleFunc("/fountains/{fountainId}/rating/{ratingId}", app.RatingDeleteHandler).
 		Methods("DELETE")
-	router.HandleFunc("/fountains/{fountainId}/rating", app.ratingPostHandler).
+	router.HandleFunc("/fountains/{fountainId}/rating", app.RatingPostHandler).
 		Methods("POST")
-	router.HandleFunc("/fountains/{fountainId}/rating", app.fountainRatingGetHandler).
+	router.HandleFunc("/fountains/{fountainId}/rating", app.FountainRatingGetHandler).
 		Methods("GET")
 
 	router.HandleFunc("/liveness", app.LivenessHandler)
@@ -95,7 +95,7 @@ func main() {
 	<-c
 	log.Println("Interruption singal received, stopping server...")
 
-	if err := server.Shutdown(context.Background()); err != nil {
+	if err := server.Shutdown(ctx.Background()); err != nil {
 		log.Println(err)
 	}
 	log.Println("Server stopped")
