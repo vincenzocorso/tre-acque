@@ -28,7 +28,7 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class EventProducer {
-    public static final String FOUNTAIN_EVENTS = "fountain-events";
+    public static final String FOUNTAIN_EVENTS = "fountain_events";
 
     @Inject
     @Channel(FOUNTAIN_EVENTS)
