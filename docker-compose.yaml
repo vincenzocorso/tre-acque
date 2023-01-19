@@ -75,14 +75,12 @@ services:
       dockerfile: ./Dockerfile
     image: tre-acque/notification-service
     environment:
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=admin
-      - RABBITMQ_PASSWORD=password
+      - KAFKA_HOST=kafka:9092
       - REDIS_PORT=6379
       - REDIS_HOST=redis
-      - MAILGUN_FROM=treacque@mailinator.com
-      - MAILGUN_DOMAIN=sandbox7d41571d706b41b3bee12f9fc7684f64.mailgun.org
-      - MAILGUN_API_KEY=YOUR_API_KEY
+      - MAILGUN_FROM=chiodi637@gmail.com
+      - MAILGUN_DOMAIN=sandbox1f4606329c4042d4ae5b239a0ea811e8.mailgun.org
+      - MAILGUN_API_KEY=myapikey
     ports:
       - "8081:3000"
     networks:

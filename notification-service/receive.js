@@ -12,7 +12,11 @@ const mg = mailgun({
   domain: process.env.MAILGUN_DOMAIN,
 });
 
-var amqp = require("amqplib/callback_api");
+const { Kafka } = require("kafkajs");
+const kafka = new Kafka({
+  clientId: "uuid",
+  brokers: [process.env.KAFKA_HOST],
+});
 
 const health = require("@cloudnative/health-connect");
 let healthcheck = new health.HealthChecker();
@@ -26,7 +30,7 @@ app.use("/ready", health.ReadinessEndpoint(healthcheck));
 
 const port = 3000;
 
-const EVENTS = ["fountain_added_events", "fountain_deleted_events"];
+const EVENTS = ["FOUNTAIN_ADDED_EVENT", "FOUNTAIN_DELETED_EVENT"];
 
 const redisClient = redis.createClient({
   url: "redis://" + process.env.REDIS_HOST + ":" + process.env.REDIS_PORT,
@@ -104,13 +108,11 @@ redisClient.connect().then(() => {
       if (result > 0) {
         return res.status(200).json({ message: "subscription deleted" });
       } else {
-        return res
-          .status(404)
-          .json({
-            type: "NOT_FOUND_ERROR",
-            message: "subscription doesn't found",
-            issues: [],
-          });
+        return res.status(404).json({
+          type: "NOT_FOUND_ERROR",
+          message: "subscription doesn't found",
+          issues: [],
+        });
       }
     }
   );
@@ -127,64 +129,30 @@ redisClient.connect().then(() => {
     });
   }
 
-  function listenQueue(queue) {
-    amqp.connect(
-      `amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}`,
-      function (error0, connection) {
-        if (error0) {
-          throw error0;
-        }
-        connection.createChannel(function (error1, channel) {
-          if (error1) {
-            throw error1;
-          }
+  async function listenQueue() {
+    const consumer = kafka.consumer({ groupId: "notification-service" });
 
-          channel.assertExchange(queue, "topic", { durable: true });
+    await consumer.connect();
+    await consumer.subscribe({
+      topic: "fountain_events",
+      fromBeginning: false,
+    });
 
-          channel.assertQueue(
-            queue,
-            {
-              durable: true,
-            },
-            (error1, q) => {
-              if (error1) {
-                throw error1;
-              }
-              channel.bindQueue(q.queue, queue, "");
-            }
-          );
-
-          console.log(
-            " [*] Waiting for messages in %s. To exit press CTRL+C",
-            queue
-          );
-
-          channel.consume(
-            queue,
-            async function (msg) {
-              console.log(
-                " [x] Received %s from queue %s",
-                msg.content.toString(),
-                queue
-              );
-              const length = await redisClient.lLen(queue);
-              let emails = await redisClient.lRange(queue, 0, length);
-              emails.forEach((email) => {
-                console.log(email);
-                sendMessage(queue, email, msg.content.toString());
-              });
-            },
-            {
-              noAck: true,
-            }
-          );
+    await consumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        const type = message.headers?.type.toString();
+        console.log("Received message: ", type, message.value.toString());
+        const length = await redisClient.lLen(type);
+        let emails = await redisClient.lRange(type, 0, length);
+        emails.forEach((email) => {
+          console.log(email);
+          sendMessage(type, email, message.value.toString());
         });
-      }
-    );
+      },
+    });
   }
 
-  listenQueue(EVENTS[0]);
-  listenQueue(EVENTS[1]);
+  listenQueue();
 
   app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
