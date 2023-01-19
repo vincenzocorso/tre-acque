@@ -17,21 +17,14 @@
 
 package it.treacque.web;
 
-import lombok.Builder;
-import lombok.ToString;
-import lombok.extern.jackson.Jacksonized;
-
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-@Builder
-@Jacksonized
-@ToString
-public class FountainRequest {
+public record FountainRequest(
     @NotEmpty(message = "The name of the fountain must not be empty")
-    public final String name;
+    String name,
     @NotNull(message = "The latitude of the fountain must be present")
-    public final Double latitude;
+    Double latitude,
     @NotNull(message = "The longitude of the fountain must be present")
-    public final Double longitude;
-}
+    Double longitude
+) {}

@@ -22,8 +22,8 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public class ErrorResponse {
-    public final String type;
-    public final String message;
-    public final List<String> issues;
-}
+public record ErrorResponse(
+    String type,
+    String message,
+    List<String> issues
+) {}

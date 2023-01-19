@@ -52,8 +52,8 @@ public class FountainService {
     @Transactional
     public Fountain addFountain(FountainRequest fountainDetails) {
         // Persist the fountain
-        var location = this.createPoint(fountainDetails.longitude, fountainDetails.latitude);
-        var fountain = new Fountain(fountainDetails.name, location);
+        var location = this.createPoint(fountainDetails.longitude(), fountainDetails.latitude());
+        var fountain = new Fountain(fountainDetails.name(), location);
         fountain.persist();
 
         // Publish the event
