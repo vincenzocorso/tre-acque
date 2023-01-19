@@ -236,7 +236,6 @@ paths:
                     param: email
                     location: body
 
->>>>>>> e4e0343... Add rating-service APIs in documentation
   /unsubscribe:
     post:
       tags:
