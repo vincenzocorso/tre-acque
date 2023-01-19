@@ -5,7 +5,7 @@
 FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
 COPY gradle gradle
-COPY *.gradle gradle.properties gradlew ./
+COPY build.gradle settings.gradle gradle.properties gradlew ./
 RUN ./gradlew quarkusBuild --info
 COPY ./src ./src
 RUN ./gradlew quarkusBuild --info
