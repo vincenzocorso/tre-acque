@@ -58,7 +58,7 @@ public class FountainService {
 
         // Publish the event
         var event = FountainAddedEvent.builder()
-                .id(fountain.id.toString())
+                .id(fountain.getId())
                 .name(fountain.getName())
                 .longitude(fountain.getLocation().getX())
                 .latitude(fountain.getLocation().getY())
@@ -77,7 +77,7 @@ public class FountainService {
 
         // Publish the event
         var event = FountainDeletedEvent.builder()
-                .id(fountain.id.toString())
+                .id(fountain.getId())
                 .name(fountain.getName())
                 .longitude(fountain.getLocation().getX())
                 .latitude(fountain.getLocation().getY())

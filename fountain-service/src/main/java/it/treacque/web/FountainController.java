@@ -71,7 +71,7 @@ public class FountainController {
 
     private FountainResponse convertToResponse(Fountain fountain) {
         return FountainResponse.builder()
-                .id(fountain.id.toString())
+                .id(fountain.getId())
                 .name(fountain.getName())
                 .longitude(fountain.getLocation().getX())
                 .latitude(fountain.getLocation().getY())
