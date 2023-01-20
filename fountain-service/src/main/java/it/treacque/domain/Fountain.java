@@ -26,8 +26,10 @@ import org.locationtech.jts.geom.Point;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
+@Table(name = "fountains")
 @NoArgsConstructor
 @Getter
 public class Fountain extends PanacheEntityBase {
