@@ -1,14 +1,14 @@
 FROM node:16-alpine3.16
 
-WORKDIR /usr/src/app
+WORKDIR /usr/app
 
 COPY package*.json ./
 
 RUN npm install
 RUN npm ci --only=production
 
-COPY . .
+COPY ./src ./src
 
 EXPOSE 3000
 
-CMD [ "node", "receive.js" ]
+CMD [ "node", "./src/app.js" ]
