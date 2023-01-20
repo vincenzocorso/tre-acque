@@ -10,17 +10,20 @@ import (
 
 	arangodb "github.com/arangodb/go-driver"
 	arangohttp "github.com/arangodb/go-driver/http"
+	kafka "github.com/segmentio/kafka-go"
 	"github.com/gorilla/mux"
 )
 
 type Application struct {
 	ArangoClient     arangodb.Client
 	ArangoCollection arangodb.Collection
+
+	KafkaConn kafka.Reader
 }
 
 func main() {
-	// ArangoDB
-	log.Println("Initializing database connection...")
+	// ArangoDB.
+	log.Println("Initializing ArangoDB connection...")
 	arangoConn, err := arangohttp.NewConnection(arangohttp.ConnectionConfig{
 		Endpoints: []string{"http://localhost:8529"},
 	})
@@ -53,9 +56,21 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Kafka.
+	log.Println("Initializing Kafka connection...")
+	kafkaConn, err := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{"kafka:9092"},
+		GroupID: "rating-service",
+		Topic: "fountain_events",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	app := &Application{
 		ArangoClient:     arangoClient,
 		ArangoCollection: colConn,
+		KafkaConn: kafkaConn,
 	}
 
 	// Webserver.
@@ -80,6 +95,11 @@ func main() {
 		Handler: router,
 	}
 
+	// Prepare and start a goroutine that handles Kafka messages.
+	// This channel is used to signal that the goroutine has exited.
+	kafkaClosed := make(chan bool, 1)
+	go app.kafkaHandler(kafkaClosed)
+
 	go func() {
 		log.Printf("Server listening at %s address", server.Addr)
 		if err := server.ListenAndServe(); err != nil {
@@ -93,6 +113,7 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 
 	<-c
+	<-kafkaClosed
 	log.Println("Interruption singal received, stopping server...")
 
 	if err := server.Shutdown(ctx.Background()); err != nil {
