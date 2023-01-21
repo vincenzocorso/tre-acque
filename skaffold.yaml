@@ -8,6 +8,10 @@ build:
       context: ./fountain-service
       docker:
         dockerfile: Dockerfile
+    - image: tre-acque/notification-service
+      context: ./notification-service
+      docker:
+        dockerfile: Dockerfile
   local:
     push: false
     concurrency: 0 # no-limit
@@ -17,6 +21,7 @@ manifests:
     - ./k8s/**/kafka.yaml
     - ./k8s/**/fountain-service.yaml
     - ./k8s/**/redis.yaml
+    - ./k8s/**/notification-service.yaml
 deploy:
   tolerateFailuresUntilDeadline: true
   kubectl: {}

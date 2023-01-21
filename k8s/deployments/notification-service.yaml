@@ -32,12 +32,8 @@ spec:
               containerPort: 3000
               protocol: TCP
           env:
-            - name: RABBITMQ_HOST
-              value: rabbitmq
-            - name: RABBITMQ_USER
-              value: admin
-            - name: RABBITMQ_PASSWORD
-              value: password
+            - name: KAFKA_HOST
+              value: kafka:9092
             - name: REDIS_PORT
               value: "6379"
             - name: REDIS_HOST
@@ -55,19 +51,18 @@ spec:
           livenessProbe:
             httpGet:
               port: 3000
-              path: /live
-            initialDelaySeconds: 15
+              path: /health/live
+            initialDelaySeconds: 30
             timeoutSeconds: 20
-            periodSeconds: 20
-            failureThreshold: 6
+            periodSeconds: 10
+            failureThreshold: 3
             successThreshold: 1
           readinessProbe:
             httpGet:
               port: 3000
-              path: /ready
-            initialDelaySeconds: 10
+              path: /health/ready
+            initialDelaySeconds: 25
             timeoutSeconds: 20
-            periodSeconds: 30
+            periodSeconds: 10
             failureThreshold: 3
             successThreshold: 1
-# TODO: add rolling updates strategy
