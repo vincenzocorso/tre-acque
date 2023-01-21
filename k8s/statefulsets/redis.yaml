@@ -32,6 +32,8 @@ spec:
             - name: http
               containerPort: 6379
               protocol: TCP
+          command: ["redis-server"]
+          args: ["--save 60 1", "--loglevel warning"]
           volumeMounts:
             - name: redis-volume
               mountPath: /data

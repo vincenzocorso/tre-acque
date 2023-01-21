@@ -13,7 +13,10 @@ build:
     concurrency: 0 # no-limit
 manifests:
   rawYaml:
-    - ./k8s/**/*.yaml
+    - ./k8s/**/postgis.yaml
+    - ./k8s/**/kafka.yaml
+    - ./k8s/**/fountain-service.yaml
+    - ./k8s/**/redis.yaml
 deploy:
   tolerateFailuresUntilDeadline: true
   kubectl: {}
