@@ -6,6 +6,7 @@ require (
 	github.com/arangodb/go-driver v1.4.1
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.8.0
+	github.com/joho/godotenv v1.4.0
 	github.com/segmentio/kafka-go v0.4.38
 )
 
