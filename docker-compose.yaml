@@ -12,6 +12,8 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       ALLOW_PLAINTEXT_LISTENER: "yes"
+    ports:
+      - "9092:9092"
     networks:
       - app-net
 
