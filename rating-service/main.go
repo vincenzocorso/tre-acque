@@ -28,6 +28,13 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Print("Error loading file config, skipping it: ", err)
 	}
+	log.Print("Loaded configuration:")
+	log.Printf("\tARANGODB_URL=%s", os.Getenv("ARANGODB_URL"))
+	log.Printf("\tARANGODB_DB=%s", os.Getenv("ARANGODB_DB"))
+	log.Printf("\tKAFKA_URL=%s", os.Getenv("KAFKA_URL"))
+	log.Printf("\tKAFKA_GROUPID=%s", os.Getenv("KAFKA_GROUPID"))
+	log.Printf("\tKAFKA_TOPIC=%s", os.Getenv("KAFKA_TOPIC"))
+	log.Printf("\tSERVER_PORT=%s", os.Getenv("SERVER_PORT"))
 
 	// ArangoDB.
 	log.Println("Initializing ArangoDB connection...")

@@ -98,5 +98,26 @@ services:
       - app-net
     restart: unless-stopped
 
+  rating-service:
+    depends_on:
+      - arangodb
+      - kafka
+    build:
+      context: ./rating-service
+      dockerfile: ./Dockerfile
+    image: tre-acque/rating-service
+    environment:
+      ARANGODB_URL: tcp://arangodb:8529
+      ARANGODB_DB: ratingsdb
+      KAFKA_URL: kafka:9092
+      KAFKA_GROUPID: rating-service
+      KAFKA_TOPIC: fountain_events
+      SERVER_PORT: 8080
+    ports:
+      - "8083:8080"
+    networks:
+      - app-net
+    restart: unless-stopped
+
 networks:
   app-net:

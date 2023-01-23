@@ -32,12 +32,6 @@ func (app *Application) RatingGetHandler(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	fountainUUID, err := uuid.Parse(fountainId)
-	if err != nil {
-		log.Println("fountainId ID must be a valid identifier")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	// Get and parse the rating ID from request's path.
 	ratingId, present := mux.Vars(r)["ratingId"]
@@ -55,8 +49,8 @@ func (app *Application) RatingGetHandler(w http.ResponseWriter, r *http.Request)
 
 	// Get the rating from the database.
 	// This query built with fmt is safe because we parsed the IDs.
-	query := fmt.Sprintf("FOR r IN ratings FILTER r._key == %q RETURN r.ratings.%s.rate",
-		fountainUUID.String(),
+	query := fmt.Sprintf("FOR r IN ratings FILTER r._key == %q RETURN r.ratings[%q].rate",
+		fountainId,
 		ratingUUID.String())
 	cursor, err := app.ArangoCollection.Database().Query(ctx.Background(), query, nil)
 	if err != nil && arangodb.IsNotFoundGeneral(err) {
@@ -100,12 +94,6 @@ func (app *Application) RatingDeleteHandler(w http.ResponseWriter, r *http.Reque
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	fountainUUID, err := uuid.Parse(fountainId)
-	if err != nil {
-		log.Println("fountainId ID must be a valid identifier")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	// Get and parse the rating ID from request's path.
 	ratingId, present := mux.Vars(r)["ratingId"]
@@ -126,9 +114,9 @@ func (app *Application) RatingDeleteHandler(w http.ResponseWriter, r *http.Reque
 	// This query built with fmt is safe because we parsed the IDs.
 	query := fmt.Sprintf(`FOR r IN ratings
 		FILTER r._key == %q
-		UPDATE r WITH {ratings: { %q: null}} IN ratings
+		UPDATE r WITH {ratings: {[%q]: null}} IN ratings
 		OPTIONS { keepNull: false }`,
-		fountainUUID.String(), ratingUUID.String())
+		fountainId, ratingUUID.String())
 	cursor, err := app.ArangoCollection.Database().Query(ctx.Background(), query, nil)
 	if err != nil && arangodb.IsNotFoundGeneral(err) {
 		w.WriteHeader(http.StatusNotFound)
@@ -229,12 +217,6 @@ func (app *Application) FountainRatingGetHandler(w http.ResponseWriter, r *http.
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	fountainUUID, err := uuid.Parse(fountainId)
-	if err != nil {
-		log.Println("fountainId ID must be a valid identifier")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	// All-in-one query. A bit messy, but it works.
 	query := fmt.Sprintf(`FOR r IN ratings
@@ -243,7 +225,7 @@ func (app *Application) FountainRatingGetHandler(w http.ResponseWriter, r *http.
 		LET sum = (FOR single IN rates RETURN single.rate)
 		LET res = AVG(sum)
 		RETURN res != null ? CEIL(res) : 0`,
-		fountainUUID.String())
+		fountainId)
 	cursor, err := app.ArangoCollection.Database().Query(ctx.Background(), query, nil)
 	if err != nil && arangodb.IsNotFoundGeneral(err) {
 		w.WriteHeader(http.StatusNotFound)
