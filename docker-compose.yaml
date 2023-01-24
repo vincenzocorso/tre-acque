@@ -15,6 +15,8 @@ services:
       KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_CFG_NUM_PARTITIONS: 6
       KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
     networks:
       - app-net
 
@@ -90,6 +92,34 @@ services:
       - MAILGUN_API_KEY=myapikey
     ports:
       - "8081:3000"
+
+  arangodb:
+    image: arangodb:3.10
+    environment:
+      ARANGO_NO_AUTH: 1
+    ports:
+      - "8529:8529"
+    networks:
+      - app-net
+    restart: unless-stopped
+
+  rating-service:
+    depends_on:
+      - arangodb
+      - kafka
+    build:
+      context: ./rating-service
+      dockerfile: ./Dockerfile
+    image: tre-acque/rating-service
+    environment:
+      ARANGODB_URL: tcp://arangodb:8529
+      ARANGODB_DB: ratingsdb
+      KAFKA_URL: kafka:9092
+      KAFKA_GROUPID: rating-service
+      KAFKA_TOPIC: fountain_events
+      SERVER_PORT: 8080
+    ports:
+      - "8083:8080"
     networks:
       - app-net
     restart: unless-stopped
