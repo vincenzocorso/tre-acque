@@ -13,5 +13,6 @@ spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: standard
-  capacity:
-    storage: 3Gi
+  resources:
+    requests:
+      storage: 1Gi
