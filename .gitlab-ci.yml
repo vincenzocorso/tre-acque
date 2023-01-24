@@ -1,8 +1,20 @@
 variables:
+  # When using dind service, you must instruct docker to talk with the
+  # daemon started inside of the service. The daemon is available with
+  # a network connection instead of the default /var/run/docker.sock socket.
+  DOCKER_HOST: tcp://docker:2375
+  # This instructs Docker not to start over TLS.
+  DOCKER_TLS_CERTDIR: ""
+  # Used by Skaffold to auto-activate the production profile
   ENV: prod
+  # The default image repository where to push images
   REGISTRY: registry.example.com/tre-acque/tre-acque
 
+services:
+  - docker:20.10.16-dind
+
 stages:
+  # This stage builds all the service images and push them to $REGISTRY
   - build
 
 build-fountain-service:
@@ -10,18 +22,18 @@ build-fountain-service:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
-    - DOCKER_HOST="$DIND_DEV" skaffold build -b fountain-service --default-repo $REGISTRY
+    - skaffold build -b fountain-service --default-repo $REGISTRY
 
 build-notification-service:
   image:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
-    - DOCKER_HOST="$DIND_DEV" skaffold build -b notification-service --default-repo $REGISTRY
+    - skaffold build -b notification-service --default-repo $REGISTRY
 
 build-rating-service:
   image:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
-    - DOCKER_HOST="$DIND_DEV" skaffold build -b rating-service --default-repo $REGISTRY
+    - skaffold build -b rating-service --default-repo $REGISTRY
