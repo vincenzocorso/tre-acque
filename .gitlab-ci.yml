@@ -7,21 +7,21 @@ stages:
 
 build-fountain-service:
   image:
-      name: gcr.io/k8s-skaffold/skaffold:v2.0.5
+    name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
-    - skaffold build -b fountain-service --default-repo $REGISTRY
+    - DOCKER_HOST="$DIND_DEV" skaffold build -b fountain-service --default-repo $REGISTRY
 
 build-notification-service:
   image:
-      name: gcr.io/k8s-skaffold/skaffold:v2.0.5
+    name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
-    - skaffold build -b notification-service --default-repo $REGISTRY
+    - DOCKER_HOST="$DIND_DEV" skaffold build -b notification-service --default-repo $REGISTRY
 
 build-rating-service:
   image:
-      name: gcr.io/k8s-skaffold/skaffold:v2.0.5
+    name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
-    - skaffold build -b rating-service --default-repo $REGISTRY
+    - DOCKER_HOST="$DIND_DEV" skaffold build -b rating-service --default-repo $REGISTRY
