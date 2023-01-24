@@ -20,6 +20,7 @@ build-fountain-service:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - skaffold build -b fountain-service --default-repo $CI_REGISTRY_IMAGE
 
 build-notification-service:
@@ -27,6 +28,7 @@ build-notification-service:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - skaffold build -b notification-service --default-repo $CI_REGISTRY_IMAGE
 
 build-rating-service:
@@ -34,4 +36,5 @@ build-rating-service:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - skaffold build -b rating-service --default-repo $CI_REGISTRY_IMAGE
