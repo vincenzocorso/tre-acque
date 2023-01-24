@@ -1,3 +1,7 @@
+stages:
+  # Builds all the service images and push them to an image registry
+  - build
+
 variables:
   # When using dind service, you must instruct docker to talk with the
   # daemon started inside of the service. The daemon is available with
@@ -8,33 +12,32 @@ variables:
   # Used by Skaffold to auto-activate the production profile
   ENV: prod
 
-services:
-  - docker:20.10.16-dind
-
-stages:
-  # This stage builds all the service images and push them to an image registry
-  - build
-
 build-fountain-service:
+  stage: build
+  services:
+    - docker:20.10.16-dind
   image:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
-  stage: build
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - skaffold build -b fountain-service --default-repo $CI_REGISTRY_IMAGE
 
 build-notification-service:
+  stage: build
+  services:
+    - docker:20.10.16-dind
   image:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
-  stage: build
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - skaffold build -b notification-service --default-repo $CI_REGISTRY_IMAGE
 
 build-rating-service:
+  stage: build
+  services:
+    - docker:20.10.16-dind
   image:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
-  stage: build
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - skaffold build -b rating-service --default-repo $CI_REGISTRY_IMAGE
