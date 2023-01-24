@@ -5,14 +5,14 @@ variables:
 build-fountain-service:
   stage: build
   script:
-    - skaffold build -b fountain-service --default-repo $(REGISTRY)
+    - skaffold build -b fountain-service --default-repo $REGISTRY
 
 build-notification-service:
   stage: build
   script:
-    - skaffold build -b notification-service --default-repo $(REGISTRY)
+    - skaffold build -b notification-service --default-repo $REGISTRY
 
 build-rating-service:
   stage: build
   script:
-    - skaffold build -b rating-service --default-repo $(REGISTRY)
+    - skaffold build -b rating-service --default-repo $REGISTRY
