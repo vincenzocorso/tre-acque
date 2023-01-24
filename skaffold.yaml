@@ -4,15 +4,15 @@ metadata:
   name: tre-acque
 build:
   artifacts:
-    - image: tre-acque/fountain-service
+    - image: fountain-service
       context: ./fountain-service
       docker:
         dockerfile: Dockerfile
-    - image: tre-acque/notification-service
+    - image: notification-service
       context: ./notification-service
       docker:
         dockerfile: Dockerfile
-    - image: tre-acque/rating-service
+    - image: rating-service
       context: ./rating-service
       docker:
         dockerfile: Dockerfile
@@ -25,3 +25,10 @@ manifests:
 deploy:
   tolerateFailuresUntilDeadline: true
   kubectl: {}
+profiles:
+  - name: prod
+    activation:
+      - env: ENV=prod
+    build:
+      local:
+        push: true
