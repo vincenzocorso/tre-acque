@@ -70,8 +70,7 @@ func (app *Application) kafkaHandler(kafkaClosed chan<- bool) {
 
 		msg, err := app.KafkaConn.ReadMessage(ctx.Background())
 		if err != nil {
-			log.Printf("kafkaHandler: %s", err)
-			continue
+			log.Fatalf("kafkaHandler: %s", err)
 		}
 
 		var msgType string
