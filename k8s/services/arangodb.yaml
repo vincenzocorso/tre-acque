@@ -14,7 +14,7 @@ spec:
     app.kubernetes.io/name: arangodb
     app.kubernetes.io/instance: arangodb-1
   type: ClusterIP
-  clusterIP: none
+  clusterIP: None
   ports:
     - name: http
       port: 8529
