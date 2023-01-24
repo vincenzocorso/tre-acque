@@ -12,16 +12,16 @@ build:
       context: ./notification-service
       docker:
         dockerfile: Dockerfile
+    - image: tre-acque/rating-service
+      context: ./rating-service
+      docker:
+        dockerfile: Dockerfile
   local:
     push: false
     concurrency: 0 # no-limit
 manifests:
   rawYaml:
-    - ./k8s/**/postgis.yaml
-    - ./k8s/**/kafka.yaml
-    - ./k8s/**/fountain-service.yaml
-    - ./k8s/**/redis.yaml
-    - ./k8s/**/notification-service.yaml
+    - ./k8s/**/*.yaml
 deploy:
   tolerateFailuresUntilDeadline: true
   kubectl: {}
