@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: arangodb
+  labels:
+    app.kubernetes.io/name: arangodb
+    app.kubernetes.io/instance: arangodb-1
+    app.kubernetes.io/version: "3.10"
+    app.kubernetes.io/component: rating-service-db
+    app.kubernetes.io/part-of: rating-service
+    app.kubernetes.io/managed-by: Kubernetes
+spec:
+  serviceName: arangodb
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: arangodb
+      app.kubernetes.io/instance: arangodb-1
+  replicas: 1
+  spec:
+    terminationGracePeriodSeconds: 30
+    volumes:
+      - name: arangodb-volume
+        persistentVolumeClaim:
+          claimName: arangodb
+    containers:
+      - name: arangodb
+        image: arangodb:3.10
+        ports:
+          - name: http
+            containerPort: 8529
+        env:
+          - name: ARANGO_NO_AUTH # Disable authentication.
+            value: 1
+        volumeMounts:
+          - name: arangodb-volume
+            mountPath: /var/lib/arangodb3
+        resources:
+          limits:
+            cpu: 1
+            memory: 1G
+        livenessProbe:
+          exec:
+            command: # Check if db object exixts.
+              - arangosh
+              - --server.authentication
+              - false
+              - --server.database
+              - ratingsdb
+              - --javascript.execute-string
+              - 'db'
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 2
+        readinessProbe:
+          exec:
+            command: # Check if db object exixts.
+              - arangosh
+              - --server.authentication
+              - false
+              - --server.database
+              - ratingsdb
+              - --javascript.execute-string
+              - 'db'
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 2
+
+
+
+
