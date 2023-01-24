@@ -7,14 +7,12 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   # Used by Skaffold to auto-activate the production profile
   ENV: prod
-  # The default image repository where to push images
-  REGISTRY: registry.example.com/tre-acque/tre-acque
 
 services:
   - docker:20.10.16-dind
 
 stages:
-  # This stage builds all the service images and push them to $REGISTRY
+  # This stage builds all the service images and push them to an image registry
   - build
 
 build-fountain-service:
@@ -22,18 +20,18 @@ build-fountain-service:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
-    - skaffold build -b fountain-service --default-repo $REGISTRY
+    - skaffold build -b fountain-service --default-repo $CI_REGISTRY_IMAGE
 
 build-notification-service:
   image:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
-    - skaffold build -b notification-service --default-repo $REGISTRY
+    - skaffold build -b notification-service --default-repo $CI_REGISTRY_IMAGE
 
 build-rating-service:
   image:
     name: gcr.io/k8s-skaffold/skaffold:v2.0.5
   stage: build
   script:
-    - skaffold build -b rating-service --default-repo $REGISTRY
+    - skaffold build -b rating-service --default-repo $CI_REGISTRY_IMAGE
