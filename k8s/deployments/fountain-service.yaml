@@ -25,7 +25,9 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: fountain-service
-          image: tre-acque/fountain-service
+          image: tre-acque/tre-acque/fountain-service
+          imagePullSecrets:
+            - name: gitlab-credentials
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
