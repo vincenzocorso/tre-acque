@@ -23,11 +23,11 @@ spec:
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
+      imagePullSecrets:
+        - name: gitlab-credentials
       containers:
         - name: fountain-service
           image: tre-acque/tre-acque/fountain-service
-          imagePullSecrets:
-            - name: gitlab-credentials
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
