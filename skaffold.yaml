@@ -30,5 +30,7 @@ profiles:
     activation:
       - env: ENV=prod
     build:
+      tagPolicy:
+        gitCommit: {}
       local:
         push: true
