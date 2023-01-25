@@ -2,7 +2,7 @@ gitops:
   # List of repositories where k8s manifests are stored. In our case there is
   # only one repository with both manifests and code.
   manifest_projects:
-    - id: gitlab.com/tre-acque/tre-acque
+    - id: tre-acque/tre-acque
       ref:
         branch: production # Watch manifests only in production branch.
       default_namespace: default
