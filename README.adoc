@@ -1,3 +1,115 @@
 = Tra Acque
 
 Progetto di Cloud Computing (WIP).
+
+== Deploy
+
+1. Necessario minikube
+2. `minikube addons enable ingress` per l'ingress
+
+== Test con `curl`
+
+1. Aggiunta di una fontana di nome "Fontana Via Armando Diaz" e in delle
+   specifiche coordinate:
+
+```
+studente@ML-RefVm-605006:~$ curl -i -X POST 192.168.49.2/fountains -H "Content-Type: application/json" -d '{"name": "Fontana Via Armando Diaz", "latitude": 345.91341, "longitude": 315.9123}'
+HTTP/1.1 201 Created
+Date: Thu, 26 Jan 2023 09:43:15 GMT
+Content-Type: application/json
+Content-Length: 121
+Connection: keep-alive
+Location: http://192.168.49.2/fountains/id
+
+{"id":"6f13307c-2bdc-40da-ba72-862bf2fddad7","name":"Fontana Via Armando Diaz","latitude":345.91341,"longitude":315.9123}
+```
+
+2. Elenco di tutte le fontane:
+
+```
+studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 09:44:15 GMT
+Content-Type: application/json
+Content-Length: 225
+Connection: keep-alive
+
+[{"id":"d61bcdb4-1b7b-4e0b-a438-172a9f5f245f","name":"Test","latitude":345.91341,"longitude":315.9123},{"id":"6f13307c-2bdc-40da-ba72-862bf2fddad7","name":"Fontana Via Armando Diaz","latitude":345.91341,"longitude":315.9123}]
+```
+
+3. Aggiunta di un voto alla fontana "Fontana Via Armando Diaz" con valore 5:
+
+```
+studente@ML-RefVm-605006:~$ curl -i -X POST 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating -H "Content-Type: application/json" -d 5
+HTTP/1.1 201 Created
+Date: Thu, 26 Jan 2023 09:45:56 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 55
+Connection: keep-alive
+
+{"id":"3afc0b19-9d5e-11ed-8276-0242ac11000c","value":5}
+```
+
+4. Ottenimento del singolo voto:
+
+```
+studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating/3afc0b19-9d5e-11ed-8276-0242ac11000c
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 09:46:44 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 55
+Connection: keep-alive
+
+{"id":"3afc0b19-9d5e-11ed-8276-0242ac11000c","value":5}
+```
+
+5. Dopo l'aggiunta di un secondo voto alla stessa fontana di valore 2, si
+   ottiene la media dei voti per la fontana (valore approssimato per eccesso):
+
+```
+studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 09:48:15 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 1
+Connection: keep-alive
+
+4
+```
+
+6. Eliminazione di un voto:
+
+```
+studente@ML-RefVm-605006:~$ curl -i -X DELETE 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating/3afc0b19-9d5e-11ed-8276-0242ac11000c
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 09:49:38 GMT
+Content-Length: 0
+Connection: keep-alive
+
+```
+
+7. Ciò ovviamente comporta il cambiamento della media dei voti per la fontana (è
+   presente un unico valore 2):
+
+```
+studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 09:50:12 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 1
+Connection: keep-alive
+
+2
+```
+
+8. Eliminazione di una fontana.
+
+TODO
+
+9. Eliminare una fontana comporta anche l'eliminazione dei voti
+
+TODO
+
+
+
+
