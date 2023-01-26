@@ -4,8 +4,8 @@ gitops:
   manifest_projects:
     - id: tre-acque/tre-acque
       ref:
-        branch: production # Watch manifests only in production branch.
-      default_namespace: default
+        branch: master # Watch manifests on default branch.
+      default_namespace: default # k8s namespace
       paths:
         - glob: 'k8s/**/*.yaml'
       reconcile_timeout: 900s # Wait max 15 minutes k8s to apply the changes.
