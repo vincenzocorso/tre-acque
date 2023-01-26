@@ -4,8 +4,89 @@ Progetto di Cloud Computing (WIP).
 
 == Deploy
 
-1. Necessario minikube
-2. `minikube addons enable ingress` per l'ingress
+Per fare il deploy usiamo il workflow GitOps in versione pull: https://www.gitops.tech/
+
+È necessario configurare un cluster Kubernetes in modo appropriato come di
+seguente.
+
+=== Cluster minikube
+
+È necessario fermare ed eliminare un cluster k8s se già attivo. Il motivo è che
+bisogna creare un nuovo cluster con più CPU e memoria RAM assegnata.
+
+```
+$ minikube stop
+$ minikube delete
+$ minikube start --cpus 3 --memory 5000
+```
+
+Bisogna abilitare il componente aggiuntivo `ingress`, perché verrà utilizzato
+dal servizio delle fontanelle:
+
+```
+$ minikube addons enable ingress
+```
+
+=== Configurazione permessi di pull per il registro GitLab
+
+XX
+
+=== Aggiunta e configurazione dell'agente GitLab
+
+Per installare l'agente sul cluster k8s viene utilizzato in via eccezionale
+Helm, che va però installato sulla VM in cui si esegue il cluster. I comandi di
+seguito sono riportati dalla documentazione ufficiale (per Debian): https://helm.sh/docs/intro/install/
+
+```
+$ curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+$ sudo apt-get install apt-transport-https --yes
+$ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+$ sudo apt-get update
+$ sudo apt-get install helm
+```
+
+La sequente repository già fornisce un agente collegato che si può trovare al
+percorso `.gitlab/agents/tre-acque-petriglia` con la relativa configurazione.
+Poiché tale agente è privato, se si vuole provare il deploy è necessario creare
+un'altra cartella con un altro nome e all'interno il file (anche vuoto)
+`config.yaml`.
+
+Ora è necessario dalla UI di GitLab generare il token relativo per l'agente
+specificato (in questo caso si presume sia `tre-acque-petriglia`. Dalla stessa
+UI GitLab suggerisce i comandi per installare e configurare l'agente, riportati
+qui di seguito:
+
+```
+$ helm repo add gitlab https://charts.gitlab.io
+$ helm repo update
+helm upgrade --install AGENT_NAME gitlab/gitlab-agent \
+    --namespace NAMESPACE \
+    --create-namespace \
+    --set image.tag=v15.8.0 \
+    --set config.token=TOKEN \
+    --set config.kasAddress=wss://kas.gitlab.com
+```
+
+Dove:
+
+* `AGENT_NAME` è il nome dell'agente, in questo caso `tre-acque-petriglia`;
+* `NAMESPACE` è il namespace di k8s in cui installare l'agente, in questo caso è
+  `gitlab-agent-tre-acque-petriglia`;
+* `TOKEN` è il token segreto di connessione, fornito dalla UI di GitLab.
+
+Si suggerisce di usare un namespace diverso da `default`, perché in quest'ultimo
+verrà effettuato il deploy dell'applicazione.
+
+A questo punto l'agente è configurato ed è già in esecuzione, appena possibile,
+in base alla configurazione presente nel file `config.yaml`, farà il deploy
+dell'applicazione. Si possono monitorare gli eventi dell'agente andando a vedere
+i log del pod associato con il seguente comando:
+
+```
+$ kubectl logs --follow NOME_POD --namespace NAMESPACE
+```
+
+Rimpiazzando ovviamente le variabili con i giusti valori dell'agente.
 
 == Test con `curl`
 
