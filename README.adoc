@@ -27,9 +27,43 @@ dal servizio delle fontanelle:
 $ minikube addons enable ingress
 ```
 
-=== Configurazione permessi di pull per il registro GitLab
+=== Credenziali d'accesso per il registry privato GitLab
 
-XX
+Durante il deploy Kubernetes scaricherà le immagini dei servizi dal registro
+privato associato alla repository su GitLab. Per questo motivo è necessario
+fornire le credenziali come mostrato di seguito riportato dalla documentazione
+ufficiale:
+https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-by-providing-credentials-on-the-command-line
+
+Si assume che l'utente abbia generato un token personale (o un token di
+progetto) dalla UI di GitLab con almeno il permesso `read-registry` . Si assume
+inoltre di operare sul namespace `default` (usato anche dal deploy).
+
+```
+kubectl create secret docker-registry gitlab-credentials \
+    --docker-server=registry.gitlab.com \
+    --docker-username=GITLAB_USERNAME \
+    --docker-password=GITLAB_TOKEN \
+    --docker-email=GITLAB_EMAIL
+```
+
+Dove:
+
+* `GITLAB_USERNAME` è il nome utente di chi genera il token;
+* `GITLAB_TOKEN` è il token generato da GitLab;
+* `GITLAB_EMAIL` è l'email associata all'utente che genera il token.
+
+Poiché queste configurazioni vanno fatte una sola volta, e all'inizio della
+creazione del cluster, si è deciso di non salvare questi manifesti nella
+repository.
+
+I manifesti dei singoli servizi hanno le immagini che puntano alla registro
+privato, ma non viene specificato dove recuperare le credenziali per l'accesso.
+Ecco perché, per ultimare, è necessario riferire al segreto appena creato:
+
+```
+kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "gitlab-credentials"}]}'
+```
 
 === Aggiunta e configurazione dell'agente GitLab
 
@@ -87,6 +121,24 @@ $ kubectl logs --follow NOME_POD --namespace NAMESPACE
 ```
 
 Rimpiazzando ovviamente le variabili con i giusti valori dell'agente.
+
+Una volta che il deploy si è stabilizzato, è possibile fare una prova tramite
+cURL. Prima bisogna ottenere l'IP del gateway con `kubectl get ingress`.
+
+```
+$ kubectl get ingress
+NAME       CLASS   HOSTS   ADDRESS        PORTS   AGE
+fountain   nginx   *       192.168.49.2   80      69m
+
+$ curl -i 192.168.49.2/fountains
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 16:44:31 GMT
+Content-Type: application/json
+Content-Length: 2
+Connection: keep-alive
+
+[]
+```
 
 == Test con `curl`
 
