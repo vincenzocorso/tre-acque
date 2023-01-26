@@ -4,6 +4,15 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import Menu from '@mui/material/Menu';
 import AddFountainForm from './components/AddFountainForm';
 import Pin from './components/Pin';
+import Stack from '@mui/material/Stack';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Typography from '@mui/material/Typography';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+import Rating from '@mui/material/Rating';
 
 const MAPBOX_TOKEN = "pk.eyJ1IjoidmluY2Vuem9jb3Jzbzk5IiwiYSI6ImNsZGJmMHY1azA0aGkzb21ia3B6bDhrajAifQ.Wp1Sal6OF5XFWXG7mWdTwg";
 
@@ -71,18 +80,40 @@ export default class App extends React.Component {
     })
       .then(res => res.json())
       .then(
-        (fountain) => this.addFountain(fountain),
+        (fountain) => {
+          const fountains = this.state.fountains;
+          fountains[fountain.id] = fountain;
+          this.setState({ fountains: fountains });
+          console.log(`Added fountain ${fountain.id}`);
+        },
         (error) => console.log(`An error occured with the request: ${error}`)
       )
       .then(() => this.closeContextMenu());
   }
 
-  // Add a fountain to the map
-  addFountain(fountain) {
-    const fountains = this.state.fountains;
-    fountains[fountain.id] = fountain;
-    this.setState({ fountains: fountains });
-    console.log(`Added fountain ${fountain.id}`);
+  // Make a DELETE request to delete a fountain
+  makeDeleteFountainRequest(fountainId) {
+    const deleteFountainUrl = `http://localhost:8080/fountains/${fountainId}`;
+    console.log(`Sending DELETE request to ${deleteFountainUrl}`);
+
+    fetch(deleteFountainUrl, {
+      method: "DELETE",
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw Error(res.statusText);
+        }
+        return res;
+      })
+      .then(
+        (_) => {
+          const fountains = this.state.fountains;
+          delete fountains[fountainId];
+          this.setState({ fountains: fountains, currentFountain: null });
+          console.log(`Deleted fountain ${fountainId}`);
+        },
+        (error) => console.log(`An error occured with the request: ${error}`)
+      );
   }
 
   // Get fountain markers
@@ -125,8 +156,37 @@ export default class App extends React.Component {
             latitude={Number(this.state.currentFountain.latitude)}
             onClose={() => this.setState({ currentFountain: null })}
           >
-            <h1>{this.state.currentFountain.name}</h1>
-            <p>Latitude: {this.state.currentFountain.latitude} | Longitude: {this.state.currentFountain.longitude}</p>
+            <Stack direction="column" spacing={2} justifyContent="center">
+              <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+                <Typography variant="h5" gutterBottom>
+                  {this.state.currentFountain.name}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+                <Rating
+                  name="no-value"
+                  value={0}
+                  onChange={(event, newValue) => {
+                    console.log(newValue)
+                  }}
+                />
+              </Stack>
+              <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+                <Typography variant="body1" gutterBottom>
+                  Latitude: {this.state.currentFountain.latitude}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+                <Typography variant="body1" gutterBottom>
+                  Longitude: {this.state.currentFountain.longitude}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={2} alignItems="center" justifyContent="flex-end">
+                <IconButton onClick={() => this.makeDeleteFountainRequest(this.state.currentFountain.id)} aria-label="delete" color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </Stack>
+            </Stack>
           </Popup>
         )}
       </Map>
