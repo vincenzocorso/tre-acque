@@ -24,7 +24,7 @@ await kafkaConsumer.run({
   eachMessage: async ({ topic, partition, message }) => {
     const type = message.headers?.type.toString();
     const fountain = JSON.parse(message.value.toString());
-    console.log(`Received message of type ${type}: ${fountain}`);
+    console.log(`Received message of type ${type}: ${message.value.toString()}`);
 
     const emails = await subscribtionRepository.getSubscriptions(type);
     emails.forEach(to => {
