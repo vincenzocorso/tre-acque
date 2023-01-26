@@ -87,11 +87,14 @@ services:
       - KAFKA_HOST=kafka:9092
       - REDIS_PORT=6379
       - REDIS_HOST=redis
-      - MAILGUN_FROM=chiodi637@gmail.com
-      - MAILGUN_DOMAIN=sandbox1f4606329c4042d4ae5b239a0ea811e8.mailgun.org
-      - MAILGUN_API_KEY=myapikey
+      - MAILGUN_FROM=no-reply@treacque.org
+      - MAILGUN_DOMAIN=my-domain
+      - MAILGUN_API_KEY=my-api-key
     ports:
       - "8081:3000"
+    networks:
+      - app-net
+    restart: unless-stopped
 
   arangodb:
     image: arangodb:3.10
