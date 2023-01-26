@@ -44,9 +44,9 @@ public class FountainService {
         return Fountain.find("SELECT f FROM Fountain f WHERE distance(f.location, ?1) < ?2", point, radius).list();
     }
 
-    public Fountain getFountain(Long fountainId) {
+    public Fountain getFountain(String fountainId) {
         return Fountain.<Fountain>findByIdOptional(fountainId)
-                .orElseThrow(() -> new EntityNotFoundException(fountainId.toString()));
+                .orElseThrow(() -> new EntityNotFoundException(fountainId));
     }
 
     @Transactional
@@ -69,10 +69,10 @@ public class FountainService {
     }
 
     @Transactional
-    public void deleteFountain(Long fountainId) {
+    public void deleteFountain(String fountainId) {
         // Delete the fountain
         var fountain = Fountain.<Fountain>findByIdOptional(fountainId)
-                .orElseThrow(() -> new EntityNotFoundException(fountainId.toString()));
+                .orElseThrow(() -> new EntityNotFoundException(fountainId));
         fountain.delete();
 
         // Publish the event
