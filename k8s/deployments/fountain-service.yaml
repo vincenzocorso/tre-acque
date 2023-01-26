@@ -23,8 +23,6 @@ spec:
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
-      imagePullSecrets:
-        - name: gitlab-credentials
       containers:
         - name: fountain-service
           image: registry.gitlab.com/tre-acque/tre-acque/fountain-service:v1.0-RC1-8-gdd02050
