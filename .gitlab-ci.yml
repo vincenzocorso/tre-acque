@@ -37,6 +37,8 @@ variables:
 
 build-fountain-service:
   stage: build
+  rules: # Buld and push only on default branch.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   variables:
     IMAGE_NAME: "${CI_REGISTRY_IMAGE}/fountain-service:${CI_COMMIT_SHORT_SHA}"
   before_script: # Authenticate Buildah to push on the private registry.
@@ -48,6 +50,8 @@ build-fountain-service:
 
 build-notification-service:
   stage: build
+  rules: # Buld and push only on default branch.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   variables:
     IMAGE_NAME: "${CI_REGISTRY_IMAGE}/notification-service:${CI_COMMIT_SHORT_SHA}"
   before_script: # Authenticate Buildah to push on the private registry.
@@ -59,6 +63,8 @@ build-notification-service:
 
 build-rating-service:
   stage: build
+  rules: # Buld and push only on default branch.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   variables:
     IMAGE_NAME: "${CI_REGISTRY_IMAGE}/rating-service:${CI_COMMIT_SHORT_SHA}"
   before_script: # Authenticate Buildah to push on the private registry.
