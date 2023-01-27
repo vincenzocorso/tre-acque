@@ -70,9 +70,10 @@ public class FountainService {
 
     @Transactional
     public void deleteFountain(String fountainId) {
-        // Get the fountain
+        // Delete the fountain
         var fountain = Fountain.<Fountain>findByIdOptional(fountainId)
                 .orElseThrow(() -> new EntityNotFoundException(fountainId));
+        fountain.delete();
 
         // Publish the event
         var event = FountainDeletedEvent.builder()
@@ -82,9 +83,6 @@ public class FountainService {
                 .latitude(fountain.getLocation().getY())
                 .build();
         this.eventProducer.sendEvent(event);
-
-        // Delete the fountain
-        fountain.delete();
     }
 
     private Point createPoint(Double longitude, Double latitude) {
