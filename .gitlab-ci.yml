@@ -33,7 +33,7 @@ variables:
   BUILDAH_FORMAT: docker
   # Build images only in a chroot isolation, because we are already running
   # whithin a container.
-  BUILDAH_ISOLATION: chroot
+  #BUILDAH_ISOLATION: chroot
 
 build-fountain-service:
   stage: build
