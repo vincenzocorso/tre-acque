@@ -2,6 +2,83 @@
 
 Progetto di Cloud Computing (WIP).
 
+== Build
+
+Il progetto utilizza le pipeline di GitLab unicamente per fare la build e push
+delle immagini dei microservizi. Poiché il progetto è sul piano gratuito
+sull'istanza offerta da GitLab, abbiamo deciso di utilizzare una VM Azure per
+eseguire i job della pipeline.
+
+== Installazione del runner
+
+I seguenti procedimenti sono stati presi dalla documentazione ufficiale: https://docs.gitlab.com/runner/install/linux-manually.html#using-binary-file
+
+1. Si scarica l'eseguibile:
+
+```
+$ sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+```
+
+2. Si danno i permessi di esecuzione all'eseguibile:
+
+```
+$ sudo chmod +x /usr/local/bin/gitlab-runner
+```
+
+3. Si crea un utente specifico per il runner:
+
+```
+$ sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
+```
+
+4. Si installa il runner (cioè crea i file di servizio per systemd) e lo si
+   avvia. Nel primo avvio avverrà la configurazione, bisogna scegliere come
+   esecutore `docker` e come immagine di default `alpine:latest`:
+
+```
+$ sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+$ sudo gitlab-runner start
+```
+
+5. Si registra il runnero con il token fornito dalla UI di GitLab nella
+   repository:
+
+```
+sudo gitlab-runner register --url https://gitlab.com/ --registration-token $REGISTRATION_TOKEN
+```
+
+== Configurazione del runner
+
+La configurazione del runner è salvata nel file
+`/etc/gitlab-runner/config.toml`, quella di default va modificata in modo da
+renderla ottimale per il progetto. Bisogna apportare le modifiche ai campi
+indicati:
+
+```
+concurrent = 3
+
+[[runners]]
+  [runners.docker]
+    privileged = true
+    security_opt = ["seccomp=unconfined"]
+```
+
+È necessario eseguire i job con l'utente root per vari limiti di Docker che come
+conseguenza impatta Buildah (in particopare di seccomp).
+
+Infine è necessario ravviare il runner, controllare per sicurezza la validità
+della configurazione e lo stato:
+
+```
+$ sudo gitlab-runner restart
+$ sudo gitlab-runner status
+$ sudo gitlab-runner verify
+```
+
+Abbiamo notato che, per ovvi motivi, i job eseguiti sulla VM sono un po' più
+lenti rispetto ai runner pubblici di GitLab, ma almeno non abbiamo il limite dei
+minuti.
+
 == Deploy
 
 Per fare il deploy usiamo il workflow GitOps in versione pull: https://www.gitops.tech/
