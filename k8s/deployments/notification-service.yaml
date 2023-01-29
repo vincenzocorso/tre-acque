@@ -39,11 +39,20 @@ spec:
             - name: REDIS_HOST
               value: redis
             - name: MAILGUN_FROM
-              value: treacque@mailinator.com
+              valueFrom:
+                secretKeyRef:
+                  name: mailgun
+                  key: from
             - name: MAILGUN_DOMAIN
-              value: sandbox7d41571d706b41b3bee12f9fc7684f64.mailgun.org
+              valueFrom:
+                secretKeyRef:
+                  name: mailgun
+                  key: domain
             - name: MAILGUN_API_KEY
-              value: YOUR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mailgun
+                  key: apikey
           resources:
             limits:
               cpu: 0.5
