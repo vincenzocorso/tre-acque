@@ -6,7 +6,8 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
-    - http:
+    - host: tre-acque.com
+      http:
         paths:
           - path: /subscribe
             pathType: Prefix
@@ -36,4 +37,11 @@ spec:
                 name: fountain-service
                 port:
                   name: http
-
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  name: http
+ 

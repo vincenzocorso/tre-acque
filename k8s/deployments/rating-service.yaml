@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: rating-service
-          image: registry.gitlab.com/tre-acque/tre-acque/rating-service:v1.0-RC1-8-gdd02050
+          image: registry.gitlab.com/tre-acque/tre-acque/rating-service:2f6c605e
           ports:
             - name: http
               containerPort: 8080
