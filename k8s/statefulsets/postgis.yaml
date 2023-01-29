@@ -37,8 +37,9 @@ spec:
               value: admin
             - name: POSTGRES_PASSWORD
               valueFrom:
-                name: postgres
-                key: password
+                secretKeyRef:
+                  name: postgres
+                  key: password
             - name: POSTGRES_DB
               value: app
           volumeMounts:

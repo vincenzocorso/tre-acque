@@ -42,8 +42,9 @@ spec:
               value: admin
             - name: POSTGRES_PASSWORD
               valueFrom:
-                name: postgres
-                key: password
+                secretKeyRef:
+                  name: postgres
+                  key: password
             - name: KAFKA_HOST
               value: kafka:9092
           resources:
