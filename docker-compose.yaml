@@ -84,14 +84,17 @@ services:
       dockerfile: ./Dockerfile
     image: tre-acque/notification-service
     environment:
-      - KAFKA_HOST=kafka:9092
-      - REDIS_PORT=6379
-      - REDIS_HOST=redis
-      - MAILGUN_FROM=chiodi637@gmail.com
-      - MAILGUN_DOMAIN=sandbox1f4606329c4042d4ae5b239a0ea811e8.mailgun.org
-      - MAILGUN_API_KEY=myapikey
+      KAFKA_HOST: kafka:9092
+      REDIS_PORT: 6379
+      REDIS_HOST: redis
+      MAILGUN_FROM: no-reply@treacque.org
+      MAILGUN_DOMAIN: sandbox24fd90c49df342a6ac73119192789020.mailgun.org
+      MAILGUN_API_KEY: INSERTHERE
     ports:
       - "8081:3000"
+    networks:
+      - app-net
+    restart: unless-stopped
 
   arangodb:
     image: arangodb:3.10
@@ -120,7 +123,27 @@ services:
       KAFKA_TOPIC: fountain_events
       SERVER_PORT: 8080
     ports:
-      - "8083:8080"
+      - "8082:8080"
+    networks:
+      - app-net
+
+  frontend:
+    restart: on-failure
+    depends_on:
+      - fountain-service
+      - notification-service
+      - rating-service
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+    image: tre-acque/frontend
+    environment:
+      MAPBOX_TOKEN: INSERTHERE
+      FOUNTAIN_SERVICE_API: localhost:8080
+      NOTIFICATION_SERVICE_API: localhost:8081
+      RATING_SERVICE_API: localhost:8082
+    ports:
+      - "80:80"
     networks:
       - app-net
 

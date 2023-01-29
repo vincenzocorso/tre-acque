@@ -42,6 +42,8 @@ type RatingResponse struct {
 
 // It is called on GET /fountains/{fountainId}/rating/{ratingId}
 func (app *Application) RatingGetHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	// Get and parse the fountain ID from request's path.
 	fountainId, present := mux.Vars(r)["fountainId"]
 	if !present {
@@ -104,6 +106,8 @@ func (app *Application) RatingGetHandler(w http.ResponseWriter, r *http.Request)
 
 // It is called on DELETE /fountains/{fountainId}/rating/{ratingId}
 func (app *Application) RatingDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	// Get and parse the fountain ID from request's path.
 	fountainId, present := mux.Vars(r)["fountainId"]
 	if !present {
@@ -150,6 +154,8 @@ func (app *Application) RatingDeleteHandler(w http.ResponseWriter, r *http.Reque
 
 // It is called on POST /fountains/{fountainId}/rating
 func (app *Application) RatingPostHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	// Get the fountain ID from request's path.
 	fountainId, present := mux.Vars(r)["fountainId"]
 	if !present {
@@ -227,6 +233,8 @@ func (app *Application) RatingPostHandler(w http.ResponseWriter, r *http.Request
 
 // It is called on GET /fountains/{fountainId}/rating
 func (app *Application) FountainRatingGetHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	// Get and parse the fountain ID from request's path.
 	fountainId, present := mux.Vars(r)["fountainId"]
 	if !present {

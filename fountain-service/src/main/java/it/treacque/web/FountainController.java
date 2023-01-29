@@ -50,7 +50,7 @@ public class FountainController {
     @GET
     @Path("/{fountainId}")
     public Response getFountainById(@PathParam("fountainId") String fountainId) {
-        var fountain = this.fountainService.getFountain(Long.parseLong(fountainId));
+        var fountain = this.fountainService.getFountain(fountainId);
         var fountainResponse = this.convertToResponse(fountain);
         return Response.ok(fountainResponse).build();
     }
@@ -59,13 +59,13 @@ public class FountainController {
     public Response addFountain(@Valid FountainRequest fountainDetails) {
         var fountain = this.fountainService.addFountain(fountainDetails);
         var fountainResponse = this.convertToResponse(fountain);
-        return Response.created(URI.create("/fountains/id")).entity(fountainResponse).build();
+        return Response.created(URI.create("/fountains/" + fountain.getId())).entity(fountainResponse).build();
     }
 
     @DELETE
     @Path("/{fountainId}")
     public Response deleteFountain(@PathParam("fountainId") String fountainId) {
-        this.fountainService.deleteFountain(Long.parseLong(fountainId));
+        this.fountainService.deleteFountain(fountainId);
         return Response.ok().build();
     }
 

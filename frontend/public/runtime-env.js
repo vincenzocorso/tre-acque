@@ -1,0 +1,1 @@
+window.__RUNTIME_CONFIG__ = {"MAPBOX_TOKEN":"pk.eyJ1IjoidmluY2Vuem9jb3Jzbzk5IiwiYSI6ImNsZGJmMHY1azA0aGkzb21ia3B6bDhrajAifQ.Wp1Sal6OF5XFWXG7mWdTwg"};

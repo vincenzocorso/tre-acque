@@ -29,6 +29,7 @@ function sendEmail(to, subject, text) {
     subject: subject,
     text: text,
   };
+  console.log(`Sending email to ${to}...`);
   mailgunClient.messages().send(data, (error, body) => {
     if(error) {
       return console.log(`An error occured while sending email: ${error}`);

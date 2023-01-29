@@ -25,6 +25,7 @@ import org.eclipse.microprofile.reactive.messaging.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.concurrent.CompletableFuture;
 
 @ApplicationScoped
 public class EventProducer {
@@ -35,14 +36,36 @@ public class EventProducer {
     Emitter<FountainEvent> fountainEventsEmitter;
 
     public void sendEvent(FountainAddedEvent event) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
         var message = KafkaRecord.of(FOUNTAIN_EVENTS, event.id, event)
-                .withHeader("type", "FOUNTAIN_ADDED_EVENT");
+                .withHeader("type", "FOUNTAIN_ADDED_EVENT")
+                .withAck(() -> {
+                    future.complete(null);
+                    return CompletableFuture.completedFuture(null);
+                })
+                .withNack((t) -> {
+                    future.completeExceptionally(t);
+                    return CompletableFuture.completedFuture(null);
+                });
+
         this.fountainEventsEmitter.send(message);
+        future.join();
     }
 
     public void sendEvent(FountainDeletedEvent event) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
         var message = KafkaRecord.of(FOUNTAIN_EVENTS, event.id, event)
-                .withHeader("type", "FOUNTAIN_DELETED_EVENT");
+                .withHeader("type", "FOUNTAIN_DELETED_EVENT")
+                .withAck(() -> {
+                    future.complete(null);
+                    return CompletableFuture.completedFuture(null);
+                })
+                .withNack((t) -> {
+                    future.completeExceptionally(t);
+                    return CompletableFuture.completedFuture(null);
+                });
+
         this.fountainEventsEmitter.send(message);
+        future.join();
     }
 }

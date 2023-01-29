@@ -23,6 +23,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 import org.locationtech.jts.geom.Point;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -37,7 +38,10 @@ public class Fountain extends PanacheEntityBase {
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     private String id;
+
     private String name;
+
+    @Column(columnDefinition = "geography(Point, 4326)")
     private Point location;
 
     public Fountain(String name, Point location) {
