@@ -88,8 +88,8 @@ services:
       - REDIS_PORT=6379
       - REDIS_HOST=redis
       - MAILGUN_FROM=no-reply@treacque.org
-      - MAILGUN_DOMAIN=my-domain
-      - MAILGUN_API_KEY=my-api-key
+      - MAILGUN_DOMAIN=sandbox24fd90c49df342a6ac73119192789020.mailgun.org
+      - MAILGUN_API_KEY=91240beee9285eb668af2db074aa650a-c9746cf8-e704e4de
     ports:
       - "8081:3000"
     networks:
@@ -124,6 +124,26 @@ services:
       SERVER_PORT: 8080
     ports:
       - "8082:8080"
+    networks:
+      - app-net
+
+  frontend:
+    restart: on-failure
+    depends_on:
+      - fountain-service
+      - notification-service
+      - rating-service
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+    image: tre-acque/frontend
+    environment:
+      MAPBOX_TOKEN: pk.eyJ1IjoidmluY2Vuem9jb3Jzbzk5IiwiYSI6ImNsZGJmMHY1azA0aGkzb21ia3B6bDhrajAifQ.Wp1Sal6OF5XFWXG7mWdTwg
+      FOUNTAIN_SERVICE_API: localhost:8080
+      NOTIFICATION_SERVICE_API: localhost:8081
+      RATING_SERVICE_API: localhost:8082
+    ports:
+      - "80:80"
     networks:
       - app-net
 
