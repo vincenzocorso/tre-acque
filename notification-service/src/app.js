@@ -22,8 +22,8 @@ import healthCheckRouter from "./config/health.js";
 import "./subscriptions/fountains.handler.js"
 
 const app = express();
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
 app.use("/", notificationRouter);
 app.use("/health", healthCheckRouter);
