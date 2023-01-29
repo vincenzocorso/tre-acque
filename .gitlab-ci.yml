@@ -73,3 +73,16 @@ build-rating-service:
   script:
     - buildah build --tag $IMAGE_NAME --file rating-service/Dockerfile rating-service
     - buildah push $IMAGE_NAME
+
+build-frontend-service:
+  stage: build
+  rules: # Buld and push only on default branch.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  variables:
+    IMAGE_NAME: "${CI_REGISTRY_IMAGE}/frontend-service:${CI_COMMIT_SHORT_SHA}"
+  before_script: # Authenticate Buildah to push on the private registry.
+    - export REGISTRY_AUTH_FILE=${HOME}/auth.json
+    - echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
+    - buildah build --tag $IMAGE_NAME --file frontend-service/Dockerfile frontend-service
+    - buildah push $IMAGE_NAME
