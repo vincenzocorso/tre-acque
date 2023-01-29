@@ -1,4 +1,4 @@
-FROM node:19.5-alpine as build
+FROM docker.io/node:19.5-alpine as build
 WORKDIR /app
 COPY ./package.json ./package-lock.json .
 RUN npm install
@@ -6,7 +6,7 @@ COPY ./public ./public
 COPY ./src ./src
 RUN npm run build
 
-FROM nginx:1.23-alpine
+FROM docker.io/nginx:1.23-alpine
 WORKDIR /usr/share/nginx/html
 COPY --from=build /app/build .
 COPY .env.example .env
