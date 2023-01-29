@@ -38,3 +38,8 @@ mailgun.env
 
 # Node.js
 node_modules/
+
+# Secrets
+secret-*
+private.key
+public.pem

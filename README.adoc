@@ -104,6 +104,64 @@ dal servizio delle fontanelle:
 $ minikube addons enable ingress
 ```
 
+=== Gestione dei segreti
+
+Per gestire i segreti nella repository per poi fare il deploy sul cluster k8s,
+utilizziamo SealedSecrets, un sistema sviluppato da Bitnami che agevola la
+creazione, diffusione e rilascio degli oggetti di tipo Secret su cluster
+Kubernetes. Maggiori informazioni sul progetto ufficiale: https://github.com/bitnami-labs/sealed-secrets
+
+Funzionamento: i segreti sono salvati nella repository in oggetti di tipo
+`SealedSecret`, tali segreti nel momento del deploy vengono decrittati da un
+controller presente nel cluster che li trasforma in oggetti di tipo `Secret`,
+per cui utilizzabili come riferimento da altri oggetti.
+
+Per ovvi motivi la chiave privata, che è presente nel cluster, non è stata
+condivisa. Per cui in caso di deploy personale è necessario ricreare i segreti.
+
+=== Installazione del controller
+
+Viene utilizzato Helm per installare il controller, come riportato dalla
+documentazione ufficiale: https://github.com/bitnami-labs/sealed-secrets#helm-chart
+
+Di seguito i comandi da eseguire:
+
+```
+$ helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+$ helm install sealed-secrets -n kube-system \
+    --set-string fullnameOverride=sealed-secrets-controller \
+    sealed-secrets/sealed-secrets
+```
+
+Per poter creare i segreti è necessario utilizzare il tool fornito in coppia con
+il controllore. Per maggiori informazioni si riporta alla documentazione
+ufficiale: https://github.com/bitnami-labs/sealed-secrets#usage
+
+Per ultimo, poiché noi utilizziamo delle VM effimere, è necessario estrarre la
+chiave privata (e pubblica) che è stata generata (la prima volta) per poi
+ripristinarla al momento della creazione di un nuovo cluster:
+
+```
+$ kubectl get secret -n kube-system \
+    -l sealedsecrets.bitnami.com/sealed-secrets-key \
+    -o yaml >main.key
+```
+
+La chiave pubblica invece si può estrarre con il seguente comando (se si vuole
+creare segreti senza avere l'accesso al cluster):
+
+```
+$ kubeseal --fetch-cert > public.pem
+```
+
+Ultimato ciò si può creare e aggiungere nella repository un segreto nel seguente
+modo:
+
+```
+$ kubeseal --namespace default --cert public.pem \
+    --secret-file secret-postgres.yaml --sealed-secret-file postgres.yaml
+```
+
 === Credenziali d'accesso per il registry privato GitLab
 
 Durante il deploy Kubernetes scaricherà le immagini dei servizi dal registro
