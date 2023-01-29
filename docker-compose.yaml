@@ -127,16 +127,16 @@ services:
     networks:
       - app-net
 
-  frontend:
+  frontend-service:
     restart: on-failure
     depends_on:
       - fountain-service
       - notification-service
       - rating-service
     build:
-      context: ./frontend
+      context: ./frontend-service
       dockerfile: ./Dockerfile
-    image: tre-acque/frontend
+    image: tre-acque/frontend-service
     environment:
       MAPBOX_TOKEN: INSERTHERE
       FOUNTAIN_SERVICE_API: localhost:8080
