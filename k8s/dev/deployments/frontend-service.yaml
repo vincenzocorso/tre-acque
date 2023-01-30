@@ -25,7 +25,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: frontend-service
-          image: tre-acque/tre-acque/frontend-service
+          image: frontend-service
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -33,7 +33,10 @@ spec:
               protocol: TCP
           env:
             - name: MAPBOX_TOKEN
-              value: postgis
+              valueFrom:
+                secretKeyRef:
+                  name: frontend
+                  key: apikey
             - name: FOUNTAIN_SERVICE_API
               value: tre-acque.com
             - name: NOTIFICATION_SERVICE_API

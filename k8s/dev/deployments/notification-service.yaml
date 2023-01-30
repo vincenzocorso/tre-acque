@@ -25,7 +25,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: notification-service
-          image: tre-acque/tre-acque/notification-service
+          image: tre-acque/notification-service
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

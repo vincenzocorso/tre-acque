@@ -4,7 +4,6 @@
   "main": "src/app.js",
   "type": "module",
   "dependencies": {
-    "@cloudnative/health-connect": "^2.1.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-validator": "^6.14.2",

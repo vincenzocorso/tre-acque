@@ -33,7 +33,10 @@ spec:
               protocol: TCP
           env:
             - name: MAPBOX_TOKEN
-              value: postgis
+              valueFrom:
+                secretKeyRef:
+                  name: frontend
+                  key: apikey
             - name: FOUNTAIN_SERVICE_API
               value: tre-acque.com
             - name: NOTIFICATION_SERVICE_API

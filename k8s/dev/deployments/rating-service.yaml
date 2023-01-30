@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: rating-service
-          image: tre-acque/tre-acque/rating-service
+          image: rating-service
           ports:
             - name: http
               containerPort: 8080

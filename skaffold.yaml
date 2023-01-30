@@ -16,9 +16,13 @@ build:
       context: ./rating-service
       docker:
         dockerfile: Dockerfile
+    - image: frontend-service
+      context: ./frontend-service
+      docker:
+        dockerfile: Dockerfile
   local:
     push: false
-    concurrency: 0 # no-limit
+    concurrency: 3
 manifests:
   rawYaml:
     - ./k8s/dev/**/*.yaml
