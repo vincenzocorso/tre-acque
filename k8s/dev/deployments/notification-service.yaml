@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  labels:
+    app.kubernetes.io/name: notification-service
+    app.kubernetes.io/instance: notification-service-1
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/component: notification-service
+    app.kubernetes.io/part-of: tre-acque
+    app.kubernetes.io/managed-by: Kubernetes
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: notification-service
+      app.kubernetes.io/instance: notification-service-1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: notification-service
+        app.kubernetes.io/instance: notification-service-1
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: notification-service
+          image: tre-acque/tre-acque/notification-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: KAFKA_HOST
+              value: kafka:9092
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_HOST
+              value: redis
+            - name: MAILGUN_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: mailgun
+                  key: from
+            - name: MAILGUN_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: mailgun
+                  key: domain
+            - name: MAILGUN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mailgun
+                  key: apikey
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 200Mi
+          livenessProbe:
+            httpGet:
+              port: 3000
+              path: /health/live
+            initialDelaySeconds: 30
+            timeoutSeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              port: 3000
+              path: /health/ready
+            initialDelaySeconds: 25
+            timeoutSeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1

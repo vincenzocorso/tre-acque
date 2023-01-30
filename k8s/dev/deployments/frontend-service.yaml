@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-service
+  labels:
+    app.kubernetes.io/name: frontend-service
+    app.kubernetes.io/instance: frontend-service-1
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/component: frontend-service
+    app.kubernetes.io/part-of: tre-acque
+    app.kubernetes.io/managed-by: Kubernetes
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend-service
+      app.kubernetes.io/instance: frontend-service-1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frontend-service
+        app.kubernetes.io/instance: frontend-service-1
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: frontend-service
+          image: tre-acque/tre-acque/frontend-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: MAPBOX_TOKEN
+              value: postgis
+            - name: FOUNTAIN_SERVICE_API
+              value: tre-acque.com
+            - name: NOTIFICATION_SERVICE_API
+              value: tre-acque.com
+            - name: RATING_SERVICE_API
+              value: tre-acque.com

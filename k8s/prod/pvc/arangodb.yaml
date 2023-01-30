@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arangodb
+  labels:
+    app.kubernetes.io/name: arangodb
+    app.kubernetes.io/instance: arangodb-1
+    app.kubernetes.io/version: "3.10"
+    app.kubernetes.io/component: rating-service-db
+    app.kubernetes.io/part-of: rating-service
+    app.kubernetes.io/managed-by: Kubernetes
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 1Gi

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgis-db
+  labels:
+    app.kubernetes.io/name: postgis
+    app.kubernetes.io/instance: postgis-1
+    app.kubernetes.io/version: "15-3.3"
+    app.kubernetes.io/component: fountain-service-db
+    app.kubernetes.io/part-of: fountain-service
+    app.kubernetes.io/managed-by: Kubernetes
+data:
+  init-db.sql: |
+    CREATE TABLE fountains (
+      id       char(36)       NOT NULL PRIMARY KEY,
+      name     varchar(100)   NOT NULL,
+      location geography      NOT NULL
+    );

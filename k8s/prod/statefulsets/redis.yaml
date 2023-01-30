@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: redis-1
+    app.kubernetes.io/version: "7.0.7"
+    app.kubernetes.io/component: notification-service-db
+    app.kubernetes.io/part-of: notification-service
+    app.kubernetes.io/managed-by: Kubernetes
+spec:
+  serviceName: redis
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: redis-1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/instance: redis-1
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: redis:7.0.7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 6379
+              protocol: TCP
+          command: ["redis-server"]
+          args: ["--save 60 1", "--loglevel warning"]
+          volumeMounts:
+            - name: redis-volume
+              mountPath: /data
+          resources:
+            limits:
+              cpu: 0.2
+              memory: 200Mi
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 45
+            timeoutSeconds: 2
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+      volumes:
+        - name: redis-volume
+          persistentVolumeClaim:
+            claimName: redis

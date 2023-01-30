@@ -21,16 +21,7 @@ build:
     concurrency: 0 # no-limit
 manifests:
   rawYaml:
-    - ./k8s/**/*.yaml
+    - ./k8s/dev/**/*.yaml
 deploy:
   tolerateFailuresUntilDeadline: true
   kubectl: {}
-profiles:
-  - name: prod
-    activation:
-      - env: ENV=prod
-    build:
-      tagPolicy:
-        gitCommit: {}
-      local:
-        push: true

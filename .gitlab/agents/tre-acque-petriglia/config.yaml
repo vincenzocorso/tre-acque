@@ -7,6 +7,6 @@ gitops:
         branch: master # Watch manifests on default branch.
       default_namespace: default # k8s namespace
       paths:
-        - glob: 'k8s/**/*.yaml'
+        - glob: 'k8s/prod/**/*.yaml'
       reconcile_timeout: 900s # Wait max 15 minutes k8s to apply the changes.
       prune_timeout: 900s
