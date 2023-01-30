@@ -62,7 +62,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	arangoClient, err := arangodb.NewClient(arangodb.ClientConfig{Connection: arangoConn})
+	arangoClient, err := arangodb.NewClient(arangodb.ClientConfig{
+		Connection: arangoConn,
+		Authentication: arangodb.BasicAuthentication("root", os.Getenv("ARANGODB_PASSWORD")),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}

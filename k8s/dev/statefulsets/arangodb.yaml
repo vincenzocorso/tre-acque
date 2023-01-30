@@ -34,8 +34,11 @@ spec:
             - name: http
               containerPort: 8529
           env:
-            - name: ARANGO_NO_AUTH # Disable authentication.
-              value: "1"
+            - name: ARANGO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: arangodb
+                  key: password
           volumeMounts:
             - name: arangodb-volume
               mountPath: /var/lib/arangodb3

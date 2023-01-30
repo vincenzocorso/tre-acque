@@ -32,6 +32,11 @@ spec:
               value: tcp://arangodb:8529
             - name: ARANGODB_DB
               value: ratingsdb
+            - name: ARANGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: arangodb
+                  key: password
             - name: KAFKA_URL
               value: kafka:9092
             - name: KAFKA_GROUPID
