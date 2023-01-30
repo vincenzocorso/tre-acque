@@ -34,6 +34,12 @@ spec:
               protocol: TCP
           command: ["redis-server"]
           args: ["--save 60 1", "--loglevel warning"]
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: password
           volumeMounts:
             - name: redis-volume
               mountPath: /data

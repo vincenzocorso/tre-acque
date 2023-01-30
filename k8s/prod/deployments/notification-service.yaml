@@ -38,6 +38,11 @@ spec:
               value: "6379"
             - name: REDIS_HOST
               value: redis
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: password
             - name: MAILGUN_FROM
               valueFrom:
                 secretKeyRef:

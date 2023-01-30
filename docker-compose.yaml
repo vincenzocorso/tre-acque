@@ -47,7 +47,9 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7.0.7
+    image: bitnami/redis:7.0.8
+    environment:
+      REDIS_PASSWORD: password
     ports:
       - "6379:6379"
     networks:
@@ -87,6 +89,7 @@ services:
       KAFKA_HOST: kafka:9092
       REDIS_PORT: 6379
       REDIS_HOST: redis
+      REDIS_PASSWORD: password
       MAILGUN_FROM: no-reply@treacque.org
       MAILGUN_DOMAIN: sandbox24fd90c49df342a6ac73119192789020.mailgun.org
       MAILGUN_API_KEY: INSERTHERE
