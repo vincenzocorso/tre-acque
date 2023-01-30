@@ -26,14 +26,12 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: redis
-          image: redis:7.0.7
+          image: bitnami/redis:7.0.8
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 6379
               protocol: TCP
-          command: ["redis-server"]
-          args: ["--save 60 1", "--loglevel warning"]
           env:
             - name: REDIS_PASSWORD
               valueFrom:
@@ -42,7 +40,7 @@ spec:
                   key: password
           volumeMounts:
             - name: redis-volume
-              mountPath: /data
+              mountPath: /bitnami/redis/data
           resources:
             limits:
               cpu: 0.2
