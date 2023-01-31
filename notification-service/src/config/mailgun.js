@@ -35,8 +35,6 @@ async function sendEmail(to, subject, text) {
   };
   console.log(`Sending email to ${to}...`);
 
-  console.log(`Domain is ${domain}`);
-
   const sendResult = await mailgunClient.messages.create(domain, data);
   if (sendResult.status == 200) {
     console.log(`An email was sent to ${to}: ${text}`);
