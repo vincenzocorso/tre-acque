@@ -275,6 +275,60 @@ Connection: keep-alive
 []
 ```
 
+=== Test con il browser in locale
+
+Una volta che si è avviato e stabilizzato il cluster Kubernetes, è possibile
+utilizzare l'applicazione da browser sul proprio computer locale. Per farlo è
+necessario creare una serie di port forward in modo che il cluster risulti
+accessibile dal computer locale. La seguente figura riassume il funzionamento:
+
+[mermaid]
+----
+sequenceDiagram
+    participant B as Browser
+    participant L as Local computer (ssh)
+    participant V as Virtual Machine (socat)
+    participant C as Kubernetes Cluster
+
+    B ->> L: HTTP Request on localhost:80
+    L ->> V: HTTP Request on VM_ADDRESS:80
+    V ->> C: HTTP Request on CLUSTER_IP:80
+
+    C ->> V: HTTP Response
+    V ->> L: HTTP Response
+    L ->> B: HTTP Response
+----
+
+Di seguito i passi da seguire:
+
+1. È necessario fare sulla VM port forwarding da localhost dalla porta 80
+   all'indirizzo del cluster alla porta 80, dove c'è in ascolto l'ingresso:
+
+```
+sudo socat tcp-listen:80,reuseaddr,fork tcp:CLUSTER_IP:80
+```
+
+È necessario `sudo` perché si opera su porte privilegiate, e si deve ottenere
+l'indirizzo del cluster tramite `minikube ip`.
+
+2. È necessario fare port forwarding tra la VM e il computer locale sulla porta
+   80:
+
+```
+sudo ssh -p PORT_AZURE IP_AZURE -L 80:localhost:80
+```
+
+Anche in questo è necessario `sudo` e bisogna conoscere la porta e l'indirizzo
+della VM, tramite l'interfaccia Azure.
+
+3. Infine bisogna aggiornare il file `/etc/hosts` per poter risolvere il dominio
+   `tre-acque.com`, utilizzato nell'applicazione frontend, con l'indirizzo di
+   localhost. Si deve aggiungere in questo file una riga con il contenuto
+   `127.0.0.1 tre-acque.com`.
+
+4. A questo punto si può utilizzare il browser e nagivare all'indirizzo
+   `tre-acque.com`, oppure utilizzare strumenti come `curl`.
+
 == Test con `curl`
 
 1. Aggiunta di una fontana di nome "Fontana Via Armando Diaz" e in delle
