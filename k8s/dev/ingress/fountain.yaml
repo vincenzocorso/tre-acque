@@ -6,8 +6,8 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
-    - host: tre-acque.com
-      http:
+    # It accepts connections from every hosts, not only "tre-acque.com"
+    - http:
         paths:
           - path: /subscribe
             pathType: Prefix
