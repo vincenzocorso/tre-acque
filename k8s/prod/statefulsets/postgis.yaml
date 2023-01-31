@@ -48,10 +48,6 @@ spec:
             - name: postgis-init-db
               mountPath: /docker-entrypoint-initdb.d/init-db.sql
               subPath: ./init-db.sql
-          resources:
-            limits:
-              cpu: 0.5
-              memory: 500Mi
           livenessProbe:
             exec:
               command:

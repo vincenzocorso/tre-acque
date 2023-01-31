@@ -42,10 +42,6 @@ spec:
           volumeMounts:
             - name: arangodb-volume
               mountPath: /var/lib/arangodb3
-          resources:
-            limits:
-              cpu: 0.5
-              memory: 350Mi
           livenessProbe:
             exec:
               command: # Check if db object exixts.

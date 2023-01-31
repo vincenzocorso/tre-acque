@@ -41,10 +41,6 @@ spec:
           volumeMounts:
             - name: redis-volume
               mountPath: /bitnami/redis/data
-          resources:
-            limits:
-              cpu: 0.2
-              memory: 200Mi
           livenessProbe:
             exec:
               command:

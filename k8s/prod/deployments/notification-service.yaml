@@ -25,7 +25,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: notification-service
-          image: registry.gitlab.com/tre-acque/tre-acque/notification-service:af14d110
+          image: registry.gitlab.com/tre-acque/tre-acque/notification-service:1d040cc6
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -58,10 +58,6 @@ spec:
                 secretKeyRef:
                   name: mailgun
                   key: apikey
-          resources:
-            limits:
-              cpu: 0.5
-              memory: 200Mi
           livenessProbe:
             httpGet:
               port: 3000
