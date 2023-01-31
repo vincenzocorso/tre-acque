@@ -15,14 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import mailgun from "mailgun-js";
+import formData from "form-data";
+import Mailgun from "mailgun.js";
 
-const mailgunClient = mailgun({
-  apiKey: process.env.MAILGUN_API_KEY,
-  domain: process.env.MAILGUN_DOMAIN,
+const mailgun = new Mailgun(formData);
+const mailgunClient = mailgun.client({
+  username: "api",
+  key: process.env.MAILGUN_API_KEY,
 });
 
-function sendEmail(to, subject, text) {
+const domain = process.env.MAILGUN_DOMAIN;
+
+async function sendEmail(to, subject, text) {
   const data = {
     from: process.env.MAILGUN_FROM,
     to: to,
@@ -30,12 +34,17 @@ function sendEmail(to, subject, text) {
     text: text,
   };
   console.log(`Sending email to ${to}...`);
-  mailgunClient.messages().send(data, (error, body) => {
-    if(error) {
-      return console.log(`An error occured while sending email: ${error}`);
-    }
-    return console.log(`An email was sent to ${to}: ${body}`);
-  });
+
+  console.log(`Domain is ${domain}`);
+
+  const sendResult = await mailgunClient.messages.create(domain, data);
+  if (sendResult.status == 200) {
+    console.log(`An email was sent to ${to}: ${text}`);
+  } else {
+    console.log(
+      `An error occured while sending email: ${sendResult.message} ${sendResult.details}`
+    );
+  }
 }
 
 export default { sendEmail };

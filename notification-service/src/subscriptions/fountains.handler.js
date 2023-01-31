@@ -24,14 +24,24 @@ await kafkaConsumer.run({
   eachMessage: async ({ topic, partition, message }) => {
     const type = message.headers?.type.toString();
     const fountain = JSON.parse(message.value.toString());
-    console.log(`Received message of type ${type}: ${message.value.toString()}`);
+    console.log(
+      `Received message of type ${type}: ${message.value.toString()}`
+    );
 
     const emails = await subscribtionRepository.getSubscriptions(type);
-    emails.forEach(to => {
-      if(type === "FOUNTAIN_ADDED_EVENT") {
-        emailService.sendEmail(to, "Tre Acque Newsletter", `${fountain.name} has been added. It is located at lng ${fountain.longitude}, lat ${fountain.latitude}`);
-      } else if(type === "FOUNTAIN_DELETED_EVENT") {
-        emailService.sendEmail(to, "Tre Acque Newsletter", `${fountain.name} has been deleted. It was located at lng ${fountain.longitude}, lat ${fountain.latitude}`);
+    emails.forEach(async (to) => {
+      if (type === "FOUNTAIN_ADDED_EVENT") {
+        await emailService.sendEmail(
+          to,
+          "Tre Acque Newsletter",
+          `${fountain.name} has been added. It is located at lng ${fountain.longitude}, lat ${fountain.latitude}`
+        );
+      } else if (type === "FOUNTAIN_DELETED_EVENT") {
+        await emailService.sendEmail(
+          to,
+          "Tre Acque Newsletter",
+          `${fountain.name} has been deleted. It was located at lng ${fountain.longitude}, lat ${fountain.latitude}`
+        );
       } else {
         console.log(`Unknown message type: ${type}`);
       }
