@@ -65,7 +65,7 @@ func (app *Application) LivenessHandler(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	} else {
-		log.Print(err)
+		log.Print("liveness: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("error"))
 	}
@@ -77,7 +77,7 @@ func (app *Application) ReadinessHandler(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	} else {
-		log.Print(err)
+		log.Print("readiness: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("error"))
 	}

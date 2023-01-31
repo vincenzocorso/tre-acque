@@ -59,7 +59,7 @@ func main() {
 		Endpoints: []string{os.Getenv("ARANGODB_URL")},
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to connect to ArangoDB: ", err)
 	}
 
 	arangoClient, err := arangodb.NewClient(arangodb.ClientConfig{
@@ -67,27 +67,27 @@ func main() {
 		Authentication: arangodb.BasicAuthentication("root", os.Getenv("ARANGODB_PASSWORD")),
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create an ArangoDB Client: ", err)
 	}
 
 	dbConn, err := arangoClient.Database(ctx.Background(), os.Getenv("ARANGODB_DB"))
 	if err != nil && arangodb.IsNotFoundGeneral(err) {
 		dbConn, err = arangoClient.CreateDatabase(ctx.Background(), os.Getenv("ARANGODB_DB"), nil)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to create DB: ", err)
 		}
 	} else if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to get DB: ", err)
 	}
 
 	colConn, err := dbConn.Collection(ctx.Background(), "ratings")
 	if err != nil && arangodb.IsNotFoundGeneral(err) {
 		colConn, err = dbConn.CreateCollection(ctx.Background(), "ratings", nil)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to create collection: ", err)
 		}
 	} else if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to get collection: ", err)
 	}
 
 	// Kafka.
