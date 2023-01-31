@@ -1,6 +1,7 @@
 = Tra Acque
+:toc:
 
-Progetto di Cloud Computing (WIP).
+Progetto di Cloud Computing anno 2022/2023.
 
 == Build
 
