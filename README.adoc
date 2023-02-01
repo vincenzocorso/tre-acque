@@ -6,8 +6,21 @@ Progetto di Cloud Computing anno 2022/2023.
 == Run
 
 È presente un file docker-compose per fare deploy locale con Docker, si può fare
-anche con Skaffold e Minikube (vedi sotto). Per maggiori informazioni si riporta
-alla relazione.
+anche con Skaffold e Minikube (vedi sotto per il deploy in produzione). Per
+maggiori informazioni si riporta alla relazione.
+
+Per il deploy con Docker Compose:
+
+```
+docker compose up
+```
+
+Per il deploy con Skaffold (richiede un cluster Kubernetes, senza agente
+GitLab):
+
+```
+skaffold dev
+```
 
 == Build
 
@@ -170,6 +183,9 @@ $ kubeseal --namespace default --cert public.pem \
 ```
 
 === Credenziali d'accesso per il registry privato GitLab
+
+Attenzione: dal momento in cui la repository diventa pubblica non è più
+necessario effettuare questa configurazione.
 
 Durante il deploy Kubernetes scaricherà le immagini dei servizi dal registro
 privato associato alla repository su GitLab. Per questo motivo è necessario
