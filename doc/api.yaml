@@ -16,6 +16,7 @@ servers:
   - url: http://tre-acque.com
 
 paths:
+  /fountains:
     get:
       description: Gets all the fountains
       parameters:
