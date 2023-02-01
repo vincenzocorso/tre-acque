@@ -2,7 +2,7 @@ openapi: 3.0.3
 
 info:
   title: Tre Acque
-  description: TODO To insert
+  description: Tre Acque HTTP API specification.
   contact:
     name: Tre Acque
     url: https://gitlab.com/tre-acque
@@ -13,22 +13,10 @@ info:
   version: "1"
 
 servers:
-  - url: http://localhost:8080
-  - url: http://localhost:8081
-
-tags:
-  - name: fountain-service
-    description: TODO description of fountain service...
-  - name: notification-service
-    description: TODO description of notification service...
-  - name: rating-service
-    description: TODO description of notification servite...
+  - url: http://tre-acque.com
 
 paths:
-  /fountains:
     get:
-      tags:
-        - fountain-service
       description: Gets all the fountains
       parameters:
         - name: area
@@ -69,8 +57,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/FountainResponse"
     post:
-      tags:
-        - fountain-service
       description: Add a new fountain
       requestBody:
         description: The fountain details
@@ -126,8 +112,6 @@ paths:
           type: string
         example: 1
     get:
-      tags:
-        - fountain-service
       description: Get the fountain with the given id
       responses:
         200:
@@ -147,8 +131,6 @@ paths:
                 message: "The entity with the given id (1) was not found"
                 issues: []
     delete:
-      tags:
-        - fountain-service
       description: Delete the fountain with the given id
       responses:
         200:
@@ -166,8 +148,6 @@ paths:
 
   /subscribe:
     post:
-      tags:
-        - notification-service
       description: Subscribe to a queue of events
       requestBody:
         description: Subscription details
@@ -238,8 +218,6 @@ paths:
 
   /unsubscribe:
     post:
-      tags:
-        - notification-service
       description: Unsubscribe from receive notifications of fontanelle
       requestBody:
         description: Unsubscription details
@@ -306,8 +284,6 @@ paths:
           type: string
         example: 1
     get:
-      tags:
-        - rating-service
       description: Get average rating for given fountain.
       responses:
         200:
@@ -327,8 +303,6 @@ paths:
                 message: "The entity with the given id (1) was not found"
                 issues: []
     post:
-      tags:
-        - rating-service
       description: Add rating for given fountain.
       requestBody:
         description: The rating details.
@@ -373,8 +347,6 @@ paths:
         schema:
           $ref: "#/components/schemas/Rating"
     get:
-      tags:
-        - rating-service
       description: Get the given rating for given fountain.
       responses:
         200:
@@ -394,8 +366,6 @@ paths:
                 message: "The entity with the given id (4) was not found"
                 issues: []
     delete:
-      tags:
-        - rating-service
       description: Delete the rating with the given id.
       responses:
         200:
