@@ -3,6 +3,12 @@
 
 Progetto di Cloud Computing anno 2022/2023.
 
+== Run
+
+È presente un file docker-compose per fare deploy locale con Docker, si può fare
+anche con Skaffold e Minikube (vedi sotto). Per maggiori informazioni si riporta
+alla relazione.
+
 == Build
 
 Il progetto utilizza le pipeline di GitLab unicamente per fare la build e push
@@ -332,6 +338,9 @@ della VM, tramite l'interfaccia Azure.
 
 == Test con `curl`
 
+Di seguito una serie di esempi con curl. Si può consultare la API doc per le
+altre api.
+
 1. Aggiunta di una fontana di nome "Fontana Via Armando Diaz" e in delle
    specifiche coordinate:
 
@@ -424,15 +433,3 @@ Connection: keep-alive
 
 2
 ```
-
-8. Eliminazione di una fontana.
-
-TODO
-
-9. Eliminare una fontana comporta anche l'eliminazione dei voti
-
-TODO
-
-
-
-
