@@ -196,26 +196,6 @@ paths:
                 message: "There was an error during the validation of the request"
                 issues:
                   - "Param: email, error: Invalid value"
-                type: object
-                properties:
-                  error:
-                    type: object
-                    properties:
-                      value:
-                        type: string
-                      msg:
-                        type: string
-                      param:
-                        type: string
-                      location:
-                        type: string
-
-                example:
-                  error:
-                    value: email
-                    msg: invalid value
-                    param: email
-                    location: body
 
   /unsubscribe:
     post:
@@ -268,12 +248,6 @@ paths:
                 type: "NOT_FOUND_ERROR"
                 message: "Subscription doesn't found"
                 issues: []
-                type: object
-                properties:
-                  message:
-                    type: string
-                example:
-                  message: subscription doesn't found
 
   /fountains/{fountainId}/rating:
     parameters:
