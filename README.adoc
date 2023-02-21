@@ -26,6 +26,9 @@ application had to implement at least one microservice patterns and had to be
 deployed on a VM using Kubernetes. You can find the full requirements in
 xref:doc/report.pdf[`doc/requirements.pdf`] file.
 
+The project source code (git repository), artifacts and pipeline is hosted on
+the public GitLab instance at https://gitlab.com/tre-acque/tre-acque.
+
 == Screenshot
 
 image::img/screen1.png[align="center"]
