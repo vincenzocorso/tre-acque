@@ -76,14 +76,14 @@ Follow these steps:
 
 - Register to https://www.mapbox.com/[Mapbox] and https://www.mailgun.com/[Mailgun]. Get the api keys
 - Replace the api keys in docker-compose.yaml (`MAPBOX_TOKEN`, `MAILGUN_DOMAIN`, `MAILGUN_API_KEY`)
-- From the root folder type: `docker compose up --build`
+- From the root folder: `docker compose up --build`
 
 Now wait for the application to start and then go to http://localhost:80
 
 If you want to deploy the application on minikube, you can use Skaffold. Follow these steps:
 
 - Edit `k8s/dev/frontend.yaml` and `k8s/dev/mailgun.yaml`, replacing the dummy values with the api keys (encoded in base64)
-- From the root folder type: `skaffold dev`
+- From the root folder: `skaffold dev`
 
 == How we deployed the application in production?
 
