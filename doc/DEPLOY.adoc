@@ -1,0 +1,278 @@
+== Gitlab Runner
+
+The following steps were taken from the https://docs.gitlab.com/runner/install/linux-manually.html#using-binary-file[official documentation].
+
+1. Download the executable:
++  
+```
+sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+```
+
+2. Give execute permissions to the executable:
++
+```
+sudo chmod +x /usr/local/bin/gitlab-runner
+```
+
+3. Create a specific user for the runner:
++
+```
+sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
+```
+
+4. Install and launch the runner. On first start, you need to choose `docker` as executor and `alpine:latest` as default image:
++
+```
+sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+sudo gitlab-runner start
+```
+
+5. Register the runner with the token provided by the GitLab:
++
+```
+sudo gitlab-runner register --url https://gitlab.com/ --registration-token $REGISTRATION_TOKEN
+```
+
+The runner configuration is saved in `/etc/gitlab-runner/config.toml`. The default one must be modified in order to make it optimal for the project. You need to make the following changes:
+
+```
+concurrent = 3
+
+[[runners]]
+  [runners.docker]
+    privileged = true
+    security_opt = ["seccomp=unconfined"]
+```
+
+Jobs need to be run as root due to various limitations of Docker.
+
+Finally you need to restart the runner:
+```
+sudo gitlab-runner restart
+sudo gitlab-runner status
+sudo gitlab-runner verify
+```
+
+== Minikube
+
+We deployed the application on a Azure VM, using a https://www.gitops.tech/[GitOps workflow] (pull version). 
+
+1. First, you need to set up a Kubernetes cluster with more CPU and RAM:
++
+```
+minikube stop
+minikube delete
+minikube start --cpus 3 --memory 5000
+```
+
+2. Enable the `ingress` add-on
++
+```
+minikube addons enable ingress
+```
+
+== Secrets
+
+To manage secrets, we use SealedSecrets, a system developed by Bitnami that facilitates the creation and management of objects of type Secret in Kubernetes. Learn more https://github.com/bitnami-labs/sealed-secrets[here].
+
+The secrets in the repository are objects of type `SealedSecret`. These are decrypted by a controller present in the cluster, which transforms them into objects of type `Secret`, usable as reference by other objects.
+
+To install the controller, we used Helm:
+```
+helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm install sealed-secrets -n kube-system \
+    --set-string fullnameOverride=sealed-secrets-controller \
+    sealed-secrets/sealed-secrets
+```
+
+In order to create the secrets it is necessary to use the tool supplied with the controller. For more information, refer to the https://github.com/bitnami-labs/sealed-secrets#usage[official documentation].
+
+Private and public keys can be extracted with the following command:
+```
+kubectl get secret -n kube-system \
+    -l sealedsecrets.bitnami.com/sealed-secrets-key \
+    -o yaml >main.key
+kubeseal --fetch-cert > public.pem
+```
+
+To add a secret, type:
+```
+$ kubeseal --namespace default --cert public.pem \
+    --secret-file secret-postgres.yaml --sealed-secret-file postgres.yaml
+```
+
+== GitLab private registry
+
+During the deployment, Kubernetes will download the service images from the private registry associated with the GitLab repository. For this reason it is necessary to provide the credentials as reported in the https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-by-providing-credentials-on-the-command-line[official documentation].
+
+The generated token must have the `read-registry` permission. It is assumed that the `default` namespace is used:
+```
+kubectl create secret docker-registry gitlab-credentials \
+    --docker-server=registry.gitlab.com \
+    --docker-username=GITLAB_USERNAME \
+    --docker-password=GITLAB_TOKEN \
+    --docker-email=GITLAB_EMAIL
+```
+Substitute `GITLAB_USERNAME`, `GITLAB_TOKEN`, `GITLAB_EMAIL` accordingly.
+
+The manifests do not specify where to retrieve the login credentials. Therefore you need to specify where the credentials can be retrieved:
+```
+kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "gitlab-credentials"}]}'
+```
+
+== GitLab Agent
+
+Helm is used also to install the GitLab agent on the k8s cluster
+```
+curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+sudo apt-get install apt-transport-https --yes
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+sudo apt-get update
+sudo apt-get install helm
+```
+
+The repository already provides an agent which can be found at `.gitlab/agents/tre-acque-petriglia`. Since this agent is private, if you want to try the deployment you need to create another folder with another name, containing inside the (even empty) `config.yaml` file.
+
+Now it is necessary to generate the agent token from GitLab (in this case it is assumed to be `tre-acqua-petriglia`). GitLab suggests the following commands:
+```
+helm repo add gitlab https://charts.gitlab.io
+helm repo update
+helm upgrade --install AGENT_NAME gitlab/gitlab-agent \
+    --namespace NAMESPACE \
+    --create-namespace \
+    --set image.tag=v15.8.0 \
+    --set config.token=TOKEN \
+    --set config.kasAddress=wss://kas.gitlab.com
+```
+where:
+
+* `AGENT_NAME` is the agent name. In this case is `tre-acque-petriglia`
+* `NAMESPACE` is k8s namespace used by the agent. In this case `gitlab-agent-tre-acque-petriglia`
+* `TOKEN` is the token provided by GitLab
+
+It is suggested to use a different k8s namespace than the one used by the application.
+
+The agent is configured and already running. As soon as possible, it will deploy the application. You can monitor agent events with the following command:
+```
+kubectl logs --follow POD_NAME --namespace NAMESPACE
+```
+
+== Try it locally
+
+Once the Kubernetes cluster is started and stabilized, you can use the browser application on your local computer. To do this, you need to create a set of port forwards so that the cluster is accessible from your local computer. The following figure summarizes the flow:
+
+[mermaid]
+----
+sequenceDiagram
+    participant B as Browser
+    participant L as Local computer (ssh)
+    participant V as Virtual Machine (socat)
+    participant C as Kubernetes Cluster
+
+    B ->> L: HTTP Request on localhost:80
+    L ->> V: HTTP Request on VM_ADDRESS:80
+    V ->> C: HTTP Request on CLUSTER_IP:80
+
+    C ->> V: HTTP Response
+    V ->> L: HTTP Response
+    L ->> B: HTTP Response
+----
+
+Follow these steps:
+
+1. You need to port forward from localhost (on the VM, port 80) to the cluster address (port 80):
++
+```
+sudo socat tcp-listen:80,reuseaddr,fork tcp:CLUSTER_IP:80
+```
++
+The cluster address can be obtained with `minikube ip`.
+
+2. You need to port forward from localhost (port 80) to the azure VM (port 80)
++
+```
+sudo ssh -p PORT_AZURE IP_AZURE -L 80:localhost:80
+```
+
+3. Finally, you need to update the `/etc/hosts` file to be able to resolve the `tre-acque.com` domain, used in the frontend application, with the address of localhost. You have to append `127.0.0.1 tre-acque.com`
+
+4. Type `tre-acque.com` in the browser
+
+You can also use curl:
+
+1. Add a fountain named "Fontana Via Armando Diaz" in specific coordinates::
++
+```
+studente@ML-RefVm-605006:~$ curl -i -X POST 192.168.49.2/fountains -H "Content-Type: application/json" -d '{"name": "Fontana Via Armando Diaz", "latitude": 345.91341, "longitude": 315.9123}'
+HTTP/1.1 201 Created
+Date: Thu, 26 Jan 2023 09:43:15 GMT
+Content-Type: application/json
+Content-Length: 121
+Connection: keep-alive
+Location: http://192.168.49.2/fountains/id
+
+{"id":"6f13307c-2bdc-40da-ba72-862bf2fddad7","name":"Fontana Via Armando Diaz","latitude":345.91341,"longitude":315.9123}
+```
+
+2. List all the fountains:
++
+```
+studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 09:44:15 GMT
+Content-Type: application/json
+Content-Length: 225
+Connection: keep-alive
+
+[{"id":"d61bcdb4-1b7b-4e0b-a438-172a9f5f245f","name":"Test","latitude":345.91341,"longitude":315.9123},{"id":"6f13307c-2bdc-40da-ba72-862bf2fddad7","name":"Fontana Via Armando Diaz","latitude":345.91341,"longitude":315.9123}]
+```
+
+3. Rate a fountain with 5 stars:
++
+```
+studente@ML-RefVm-605006:~$ curl -i -X POST 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating -H "Content-Type: application/json" -d 5
+HTTP/1.1 201 Created
+Date: Thu, 26 Jan 2023 09:45:56 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 55
+Connection: keep-alive
+
+{"id":"3afc0b19-9d5e-11ed-8276-0242ac11000c","value":5}
+```
+
+4. Retrieve a rating:
++
+```
+studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating/3afc0b19-9d5e-11ed-8276-0242ac11000c
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 09:46:44 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 55
+Connection: keep-alive
+
+{"id":"3afc0b19-9d5e-11ed-8276-0242ac11000c","value":5}
+```
+
+5. Rate the fountain again. Now you can obtain the average rating:
++
+```
+studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 09:48:15 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 1
+Connection: keep-alive
+
+4
+```
+
+6. Delete a rating:
++
+```
+studente@ML-RefVm-605006:~$ curl -i -X DELETE 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating/3afc0b19-9d5e-11ed-8276-0242ac11000c
+HTTP/1.1 200 OK
+Date: Thu, 26 Jan 2023 09:49:38 GMT
+Content-Length: 0
+Connection: keep-alive
+
+```

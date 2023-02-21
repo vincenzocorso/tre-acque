@@ -1,451 +1,91 @@
-= Tra Acque
-:toc:
+= Tre Acque
 
-Progetto di Cloud Computing anno 2022/2023.
+image::img/logo192.png[align="center"]
 
-== Run
+== What is Tre Acque?
 
-È presente un file docker-compose per fare deploy locale con Docker, si può fare
-anche con Skaffold e Minikube (vedi sotto per il deploy in produzione). Per
-maggiori informazioni si riporta alla relazione.
+Tre Acque is a crowd-sourced public application about drinking fountains located on the national territory. The application allows users to add or remove a fountain with a name, search fountains in a selected map area, give a vote in a five star-based scale, see the average rating, and keep updated via email for added or removed fountains.
 
-Per il deploy con Docker Compose:
+This application was developed, as final project for the Cloud Computing course (2022/2023), by:
 
-```
-docker compose up
-```
+- Vincenzo Corso (v.corso3@campus.unimib.it)
 
-Per il deploy con Skaffold (richiede un cluster Kubernetes, senza agente
-GitLab):
+- Emanuele Petriglia (e.petriglia@campus.unimib.it)
 
-```
-skaffold dev
-```
+- Gabriele Chiodi (g.chiodi5@campus.unimib.it)
 
-== Build
+The problem statement required us to develop a microservice application with at least three services (with one external service call) and two databases. The application had to implement at least one microservice patterns and had to be deployed on a VM using Kubernetes.
 
-Il progetto utilizza le pipeline di GitLab unicamente per fare la build e push
-delle immagini dei microservizi. Poiché il progetto è sul piano gratuito
-sull'istanza offerta da GitLab, abbiamo deciso di utilizzare una VM Azure per
-eseguire i job della pipeline.
+== Screenshot
 
-== Installazione del runner
+image::img/screen1.png[align="center"]
 
-I seguenti procedimenti sono stati presi dalla documentazione ufficiale: https://docs.gitlab.com/runner/install/linux-manually.html#using-binary-file
+image::img/screen2.png[align="center"]
 
-1. Si scarica l'eseguibile:
+== Architecture Overview
 
-```
-$ sudo curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
-```
+image::img/architecture-diagram.png[align="center"]
 
-2. Si danno i permessi di esecuzione all'eseguibile:
+At high level the architecture is composed of four services (fountain,
+notification, rating, frontend). The user interacts with the system only through the API Gateway. The backend services exchange messages
+using Kafka as message broker.
 
-```
-$ sudo chmod +x /usr/local/bin/gitlab-runner
-```
+=== Foutain Service
 
-3. Si crea un utente specifico per il runner:
+Is written in Java, using the Quarkus framework. Has three main responsibilities: adding, deleting and searching fountains (also in a certain area). Data are persisted in a PostgreSQL instance with a PostGIS extension installed to support geoqueries. When a new fountain is added or deleted, an event is sent to Kafka.
 
-```
-$ sudo useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
-```
+=== Rating Service
 
-4. Si installa il runner (cioè crea i file di servizio per systemd) e lo si
-   avvia. Nel primo avvio avverrà la configurazione, bisogna scegliere come
-   esecutore `docker` e come immagine di default `alpine:latest`:
+Is written in Go. Has two main responsibilities: saving a user rating and calculating the average rating of a fountain. Data are persisted in an ArangoDB instance. Each document represents a fountain and collects its ratings. When a new fountain is added or deleted, the corresponding event is received and processed.
 
-```
-$ sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
-$ sudo gitlab-runner start
-```
+=== Notification Service
 
-5. Si registra il runnero con il token fornito dalla UI di GitLab nella
-   repository:
+Is written in Javascript, using NodeJS. Has two main responsibilities: subscribing/unsubscribing users to fountain events and sending emails through an external service (Mailgun). For the purpose of this demo, emails can be sent only to authorized recipients (i.e. the team members). Data are saved in a persistent Redis instance (AOF strategy). In particular there are two sets (one for each event) containing the user emails. When a new fountain is added or deleted, the corresponding event is received and processed.
 
-```
-sudo gitlab-runner register --url https://gitlab.com/ --registration-token $REGISTRATION_TOKEN
-```
+=== Kafka
 
-== Configurazione del runner
+We chose Kafka as message broker because supports event replay (a must-have feature for microservices) and gives guarantees about message ordering (ensure data consistency). From version 2.8 there is the intent to replace Zookeeper with a consensus protocol called KRaft. From version 3.3 this mode is now production-ready. We used the KRaft mode (i.e. without zookeeper) to make it easier deploying Kafka.
 
-La configurazione del runner è salvata nel file
-`/etc/gitlab-runner/config.toml`, quella di default va modificata in modo da
-renderla ottimale per il progetto. Bisogna apportare le modifiche ai campi
-indicati:
+=== Frontend Service
 
-```
-concurrent = 3
+This service returns a static html page containing the frontend app that runs on the client browser. The app delivered is written with
+React. To show the map we used another external service called Mapbox.
 
-[[runners]]
-  [runners.docker]
-    privileged = true
-    security_opt = ["seccomp=unconfined"]
-```
+=== Microservice Patterns
 
-È necessario eseguire i job con l'utente root per vari limiti di Docker che come
-conseguenza impatta Buildah (in particopare di seccomp).
+In summary:
 
-Infine è necessario ravviare il runner, controllare per sicurezza la validità
-della configurazione e lo stato:
+- each service uses its own db (*Database-per-service Pattern*).
+- the fountain service notifies other services sending an event
+through the message broker (*Messaging Pattern*).
+- Users have a single point of access (*API Gateway Pattern*).
 
-```
-$ sudo gitlab-runner restart
-$ sudo gitlab-runner status
-$ sudo gitlab-runner verify
-```
+In addition:
 
-Abbiamo notato che, per ovvi motivi, i job eseguiti sulla VM sono un po' più
-lenti rispetto ai runner pubblici di GitLab, ma almeno non abbiamo il limite dei
-minuti.
+- backend services offers three endpoints to verify if the instance is
+started, ready and live (*Health Check Pattern*).
+- fountain service uses quarkus extensions to avoid reinventing the
+wheel and to simplify handling of the cross-cutting concern such as
+health checking and messaging (*Microservices Chassis Pattern*).
 
-== Deploy
+== Try It
 
-Per fare il deploy usiamo il workflow GitOps in versione pull: https://www.gitops.tech/
+To quickly start the application you can use docker compose.
 
-È necessario configurare un cluster Kubernetes in modo appropriato come di
-seguente.
+Follow these steps:
 
-=== Cluster minikube
+- Register to https://www.mapbox.com/[Mapbox] and https://www.mailgun.com/[Mailgun]. Get the api keys
+- Replace the api keys in docker-compose.yaml (`MAPBOX_TOKEN`, `MAILGUN_DOMAIN`, `MAILGUN_API_KEY`)
+- From the root folder type: `docker compose up --build`
 
-È necessario fermare ed eliminare un cluster k8s se già attivo. Il motivo è che
-bisogna creare un nuovo cluster con più CPU e memoria RAM assegnata.
+Now wait for the application to start and then go to http://localhost:80
 
-```
-$ minikube stop
-$ minikube delete
-$ minikube start --cpus 3 --memory 5000
-```
+If you want to deploy the application on minikube, you can use Skaffold. Follow these steps:
 
-Bisogna abilitare il componente aggiuntivo `ingress`, perché verrà utilizzato
-dal servizio delle fontanelle:
+- Edit `k8s/dev/frontend.yaml` and `k8s/dev/mailgun.yaml`, replacing the dummy values with the api keys (encoded in base64)
+- From the root folder type: `skaffold dev`
 
-```
-$ minikube addons enable ingress
-```
+== How we deployed the application in production?
 
-=== Gestione dei segreti
+Well, this is an interesting question. You can find the details xref:doc/Report.pdf[here] and xref:doc/DEPLOY.adoc[here].
 
-Per gestire i segreti nella repository per poi fare il deploy sul cluster k8s,
-utilizziamo SealedSecrets, un sistema sviluppato da Bitnami che agevola la
-creazione, diffusione e rilascio degli oggetti di tipo Secret su cluster
-Kubernetes. Maggiori informazioni sul progetto ufficiale: https://github.com/bitnami-labs/sealed-secrets
-
-Funzionamento: i segreti sono salvati nella repository in oggetti di tipo
-`SealedSecret`, tali segreti nel momento del deploy vengono decrittati da un
-controller presente nel cluster che li trasforma in oggetti di tipo `Secret`,
-per cui utilizzabili come riferimento da altri oggetti.
-
-Per ovvi motivi la chiave privata, che è presente nel cluster, non è stata
-condivisa. Per cui in caso di deploy personale è necessario ricreare i segreti.
-
-=== Installazione del controller
-
-Viene utilizzato Helm per installare il controller, come riportato dalla
-documentazione ufficiale: https://github.com/bitnami-labs/sealed-secrets#helm-chart
-
-Di seguito i comandi da eseguire:
-
-```
-$ helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
-$ helm install sealed-secrets -n kube-system \
-    --set-string fullnameOverride=sealed-secrets-controller \
-    sealed-secrets/sealed-secrets
-```
-
-Per poter creare i segreti è necessario utilizzare il tool fornito in coppia con
-il controllore. Per maggiori informazioni si riporta alla documentazione
-ufficiale: https://github.com/bitnami-labs/sealed-secrets#usage
-
-Per ultimo, poiché noi utilizziamo delle VM effimere, è necessario estrarre la
-chiave privata (e pubblica) che è stata generata (la prima volta) per poi
-ripristinarla al momento della creazione di un nuovo cluster:
-
-```
-$ kubectl get secret -n kube-system \
-    -l sealedsecrets.bitnami.com/sealed-secrets-key \
-    -o yaml >main.key
-```
-
-La chiave pubblica invece si può estrarre con il seguente comando (se si vuole
-creare segreti senza avere l'accesso al cluster):
-
-```
-$ kubeseal --fetch-cert > public.pem
-```
-
-Ultimato ciò si può creare e aggiungere nella repository un segreto nel seguente
-modo:
-
-```
-$ kubeseal --namespace default --cert public.pem \
-    --secret-file secret-postgres.yaml --sealed-secret-file postgres.yaml
-```
-
-=== Credenziali d'accesso per il registry privato GitLab
-
-Attenzione: dal momento in cui la repository diventa pubblica non è più
-necessario effettuare questa configurazione.
-
-Durante il deploy Kubernetes scaricherà le immagini dei servizi dal registro
-privato associato alla repository su GitLab. Per questo motivo è necessario
-fornire le credenziali come mostrato di seguito riportato dalla documentazione
-ufficiale:
-https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-by-providing-credentials-on-the-command-line
-
-Si assume che l'utente abbia generato un token personale (o un token di
-progetto) dalla UI di GitLab con almeno il permesso `read-registry` . Si assume
-inoltre di operare sul namespace `default` (usato anche dal deploy).
-
-```
-kubectl create secret docker-registry gitlab-credentials \
-    --docker-server=registry.gitlab.com \
-    --docker-username=GITLAB_USERNAME \
-    --docker-password=GITLAB_TOKEN \
-    --docker-email=GITLAB_EMAIL
-```
-
-Dove:
-
-* `GITLAB_USERNAME` è il nome utente di chi genera il token;
-* `GITLAB_TOKEN` è il token generato da GitLab;
-* `GITLAB_EMAIL` è l'email associata all'utente che genera il token.
-
-Poiché queste configurazioni vanno fatte una sola volta, e all'inizio della
-creazione del cluster, si è deciso di non salvare questi manifesti nella
-repository.
-
-I manifesti dei singoli servizi hanno le immagini che puntano alla registro
-privato, ma non viene specificato dove recuperare le credenziali per l'accesso.
-Ecco perché, per ultimare, è necessario riferire al segreto appena creato:
-
-```
-kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "gitlab-credentials"}]}'
-```
-
-=== Aggiunta e configurazione dell'agente GitLab
-
-Per installare l'agente sul cluster k8s viene utilizzato in via eccezionale
-Helm, che va però installato sulla VM in cui si esegue il cluster. I comandi di
-seguito sono riportati dalla documentazione ufficiale (per Debian): https://helm.sh/docs/intro/install/
-
-```
-$ curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
-$ sudo apt-get install apt-transport-https --yes
-$ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
-$ sudo apt-get update
-$ sudo apt-get install helm
-```
-
-La sequente repository già fornisce un agente collegato che si può trovare al
-percorso `.gitlab/agents/tre-acque-petriglia` con la relativa configurazione.
-Poiché tale agente è privato, se si vuole provare il deploy è necessario creare
-un'altra cartella con un altro nome e all'interno il file (anche vuoto)
-`config.yaml`.
-
-Ora è necessario dalla UI di GitLab generare il token relativo per l'agente
-specificato (in questo caso si presume sia `tre-acque-petriglia`. Dalla stessa
-UI GitLab suggerisce i comandi per installare e configurare l'agente, riportati
-qui di seguito:
-
-```
-$ helm repo add gitlab https://charts.gitlab.io
-$ helm repo update
-helm upgrade --install AGENT_NAME gitlab/gitlab-agent \
-    --namespace NAMESPACE \
-    --create-namespace \
-    --set image.tag=v15.8.0 \
-    --set config.token=TOKEN \
-    --set config.kasAddress=wss://kas.gitlab.com
-```
-
-Dove:
-
-* `AGENT_NAME` è il nome dell'agente, in questo caso `tre-acque-petriglia`;
-* `NAMESPACE` è il namespace di k8s in cui installare l'agente, in questo caso è
-  `gitlab-agent-tre-acque-petriglia`;
-* `TOKEN` è il token segreto di connessione, fornito dalla UI di GitLab.
-
-Si suggerisce di usare un namespace diverso da `default`, perché in quest'ultimo
-verrà effettuato il deploy dell'applicazione.
-
-A questo punto l'agente è configurato ed è già in esecuzione, appena possibile,
-in base alla configurazione presente nel file `config.yaml`, farà il deploy
-dell'applicazione. Si possono monitorare gli eventi dell'agente andando a vedere
-i log del pod associato con il seguente comando:
-
-```
-$ kubectl logs --follow NOME_POD --namespace NAMESPACE
-```
-
-Rimpiazzando ovviamente le variabili con i giusti valori dell'agente.
-
-Una volta che il deploy si è stabilizzato, è possibile fare una prova tramite
-cURL. Prima bisogna ottenere l'IP del gateway con `kubectl get ingress`.
-
-```
-$ kubectl get ingress
-NAME       CLASS   HOSTS   ADDRESS        PORTS   AGE
-fountain   nginx   *       192.168.49.2   80      69m
-
-$ curl -i 192.168.49.2/fountains
-HTTP/1.1 200 OK
-Date: Thu, 26 Jan 2023 16:44:31 GMT
-Content-Type: application/json
-Content-Length: 2
-Connection: keep-alive
-
-[]
-```
-
-=== Test con il browser in locale
-
-Una volta che si è avviato e stabilizzato il cluster Kubernetes, è possibile
-utilizzare l'applicazione da browser sul proprio computer locale. Per farlo è
-necessario creare una serie di port forward in modo che il cluster risulti
-accessibile dal computer locale. La seguente figura riassume il funzionamento:
-
-[mermaid]
-----
-sequenceDiagram
-    participant B as Browser
-    participant L as Local computer (ssh)
-    participant V as Virtual Machine (socat)
-    participant C as Kubernetes Cluster
-
-    B ->> L: HTTP Request on localhost:80
-    L ->> V: HTTP Request on VM_ADDRESS:80
-    V ->> C: HTTP Request on CLUSTER_IP:80
-
-    C ->> V: HTTP Response
-    V ->> L: HTTP Response
-    L ->> B: HTTP Response
-----
-
-Di seguito i passi da seguire:
-
-1. È necessario fare sulla VM port forwarding da localhost dalla porta 80
-   all'indirizzo del cluster alla porta 80, dove c'è in ascolto l'ingresso:
-
-```
-sudo socat tcp-listen:80,reuseaddr,fork tcp:CLUSTER_IP:80
-```
-
-È necessario `sudo` perché si opera su porte privilegiate, e si deve ottenere
-l'indirizzo del cluster tramite `minikube ip`.
-
-2. È necessario fare port forwarding tra la VM e il computer locale sulla porta
-   80:
-
-```
-sudo ssh -p PORT_AZURE IP_AZURE -L 80:localhost:80
-```
-
-Anche in questo è necessario `sudo` e bisogna conoscere la porta e l'indirizzo
-della VM, tramite l'interfaccia Azure.
-
-3. Infine bisogna aggiornare il file `/etc/hosts` per poter risolvere il dominio
-   `tre-acque.com`, utilizzato nell'applicazione frontend, con l'indirizzo di
-   localhost. Si deve aggiungere in questo file una riga con il contenuto
-   `127.0.0.1 tre-acque.com`.
-
-4. A questo punto si può utilizzare il browser e nagivare all'indirizzo
-   `tre-acque.com`, oppure utilizzare strumenti come `curl`.
-
-== Test con `curl`
-
-Di seguito una serie di esempi con curl. Si può consultare la API doc per le
-altre api.
-
-1. Aggiunta di una fontana di nome "Fontana Via Armando Diaz" e in delle
-   specifiche coordinate:
-
-```
-studente@ML-RefVm-605006:~$ curl -i -X POST 192.168.49.2/fountains -H "Content-Type: application/json" -d '{"name": "Fontana Via Armando Diaz", "latitude": 345.91341, "longitude": 315.9123}'
-HTTP/1.1 201 Created
-Date: Thu, 26 Jan 2023 09:43:15 GMT
-Content-Type: application/json
-Content-Length: 121
-Connection: keep-alive
-Location: http://192.168.49.2/fountains/id
-
-{"id":"6f13307c-2bdc-40da-ba72-862bf2fddad7","name":"Fontana Via Armando Diaz","latitude":345.91341,"longitude":315.9123}
-```
-
-2. Elenco di tutte le fontane:
-
-```
-studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains
-HTTP/1.1 200 OK
-Date: Thu, 26 Jan 2023 09:44:15 GMT
-Content-Type: application/json
-Content-Length: 225
-Connection: keep-alive
-
-[{"id":"d61bcdb4-1b7b-4e0b-a438-172a9f5f245f","name":"Test","latitude":345.91341,"longitude":315.9123},{"id":"6f13307c-2bdc-40da-ba72-862bf2fddad7","name":"Fontana Via Armando Diaz","latitude":345.91341,"longitude":315.9123}]
-```
-
-3. Aggiunta di un voto alla fontana "Fontana Via Armando Diaz" con valore 5:
-
-```
-studente@ML-RefVm-605006:~$ curl -i -X POST 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating -H "Content-Type: application/json" -d 5
-HTTP/1.1 201 Created
-Date: Thu, 26 Jan 2023 09:45:56 GMT
-Content-Type: text/plain; charset=utf-8
-Content-Length: 55
-Connection: keep-alive
-
-{"id":"3afc0b19-9d5e-11ed-8276-0242ac11000c","value":5}
-```
-
-4. Ottenimento del singolo voto:
-
-```
-studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating/3afc0b19-9d5e-11ed-8276-0242ac11000c
-HTTP/1.1 200 OK
-Date: Thu, 26 Jan 2023 09:46:44 GMT
-Content-Type: text/plain; charset=utf-8
-Content-Length: 55
-Connection: keep-alive
-
-{"id":"3afc0b19-9d5e-11ed-8276-0242ac11000c","value":5}
-```
-
-5. Dopo l'aggiunta di un secondo voto alla stessa fontana di valore 2, si
-   ottiene la media dei voti per la fontana (valore approssimato per eccesso):
-
-```
-studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating
-HTTP/1.1 200 OK
-Date: Thu, 26 Jan 2023 09:48:15 GMT
-Content-Type: text/plain; charset=utf-8
-Content-Length: 1
-Connection: keep-alive
-
-4
-```
-
-6. Eliminazione di un voto:
-
-```
-studente@ML-RefVm-605006:~$ curl -i -X DELETE 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating/3afc0b19-9d5e-11ed-8276-0242ac11000c
-HTTP/1.1 200 OK
-Date: Thu, 26 Jan 2023 09:49:38 GMT
-Content-Length: 0
-Connection: keep-alive
-
-```
-
-7. Ciò ovviamente comporta il cambiamento della media dei voti per la fontana (è
-   presente un unico valore 2):
-
-```
-studente@ML-RefVm-605006:~$ curl -i 192.168.49.2/fountains/6f13307c-2bdc-40da-ba72-862bf2fddad7/rating
-HTTP/1.1 200 OK
-Date: Thu, 26 Jan 2023 09:50:12 GMT
-Content-Type: text/plain; charset=utf-8
-Content-Length: 1
-Connection: keep-alive
-
-2
-```
