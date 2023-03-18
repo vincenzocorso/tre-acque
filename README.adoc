@@ -1,6 +1,16 @@
 = Tre Acque
 
+ifdef::env-github[]
+++++
+<p align="center">
+  <img src="img/logo192.png">
+</p>
+++++
+endif::[]
+
+ifndef::env-github[]
 image::img/logo192.png[align="center"]
+endif::[]
 
 == What is Tre Acque?
 
@@ -37,7 +47,17 @@ image::img/screen2.png[align="center"]
 
 == Architecture Overview
 
+ifdef::env-github[]
+++++
+<p align="center">
+  <img src="img/architecture-diagram.png">
+</p>
+++++
+endif::[]
+
+ifndef::env-github[]
 image::img/architecture-diagram.png[align="center"]
+endif::[]
 
 At high level the architecture is composed of four services (fountain,
 notification, rating, frontend). The user interacts with the system only through
